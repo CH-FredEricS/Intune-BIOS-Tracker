@@ -1,310 +1,338 @@
-# Intune BIOS Compliance Checker — Dokumentation
+# Intune BIOS Compliance Checker — Documentation
 
-**Version 1.8**
+**Version 2.0**
 
-Ein browserbasiertes Tool zur Übersicht aller Windows-Geräte in Microsoft Intune mit Abgleich der aktuellen BIOS-Version gegen die von Dell und HP veröffentlichten Mindestversionen für das **Windows Secure Boot 2023 Zertifikats-Update** (Ablauf Juni 2026).
+A browser-based tool for reviewing all Windows devices in Microsoft Intune, comparing installed BIOS versions against the minimum versions published by Dell and HP for the **Windows Secure Boot 2023 certificate update** (expiring June 2026). Optionally extended with Secure Boot and certificate status via CSV import from the Intune portal.
 
 ---
 
-## Inhaltsverzeichnis
+## Table of Contents
 
-- [Was ist das Tool?](#was-ist-das-tool)
-- [Voraussetzungen](#voraussetzungen)
-- [Azure AD App-Registrierung](#azure-ad-app-registrierung)
-- [Erste Anmeldung](#erste-anmeldung)
-- [Datenabruf](#datenabruf)
-- [BIOS-Compliance-Prüfung](#bios-compliance-prüfung)
-- [Filter & Sortierung](#filter--sortierung)
-- [CSV-Export](#csv-export)
-- [BIOS-Datenbank](#bios-datenbank)
-- [Status-Codes](#status-codes)
-- [Graph API Referenz](#graph-api-referenz)
-- [Fehlerbehebung](#fehlerbehebung)
+- [What is this tool?](#what-is-this-tool)
+- [Requirements](#requirements)
+- [Azure AD App Registration](#azure-ad-app-registration)
+- [First sign-in](#first-sign-in)
+- [Data retrieval](#data-retrieval)
+- [BIOS compliance check](#bios-compliance-check)
+- [Secure Boot CSV import](#secure-boot-csv-import)
+- [Filters & sorting](#filters--sorting)
+- [CSV export](#csv-export)
+- [BIOS database](#bios-database)
+- [Status codes](#status-codes)
+- [Graph API reference](#graph-api-reference)
+- [Troubleshooting](#troubleshooting)
 - [Changelog](#changelog)
 
 ---
 
-## Was ist das Tool?
+## What is this tool?
 
-Die Microsoft Secure Boot Zertifikate aus dem Jahr 2011 laufen ab Juni 2026 aus. Damit Windows-Geräte weiterhin Secure-Boot-bezogene Sicherheitsupdates erhalten können, müssen OEM-Hersteller BIOS-Updates mit den neuen 2023-Zertifikaten bereitstellen — und diese müssen auf den Geräten installiert sein.
+The Microsoft Secure Boot certificates issued in 2011 begin expiring in June 2026. For Windows devices to continue receiving Secure Boot-related security updates, OEM vendors must ship BIOS updates containing the new 2023 certificates — and those updates must be installed on devices.
 
-Dieses Tool liest alle Windows-Geräte aus Intune via Microsoft Graph API aus, holt die BIOS-Version per Einzelabruf ab und vergleicht sie automatisch mit den veröffentlichten Mindestversionen der Hersteller. Das Ergebnis ist eine filterbare, exportierbare Compliance-Übersicht.
+This tool reads all Windows devices from Intune via the Microsoft Graph API, fetches the BIOS version for each device individually, and automatically compares it against the published minimum versions. The result is a filterable, exportable compliance overview.
 
-| Unterstützte Hersteller | Dell-Modelle | HP-Modelle | Lenovo-Modelle |
+| Supported vendors | Dell models | HP models | Lenovo models |
 |---|---|---|---|
-| 3 | ~320 | 296 | ausstehend |
+| 3 | ~320 | 296 | pending |
 
-> **Datenschutz:** Das Tool läuft vollständig im Browser. Es werden keine Daten an externe Server gesendet. Tenant-ID und Client-ID werden nur in der `sessionStorage` des Browsers gespeichert und beim Schliessen des Tabs verworfen.
-
----
-
-## Voraussetzungen
-
-- Moderner Browser (Chrome, Edge, Firefox, Safari)
-- Zugriff auf einen Microsoft Entra ID (Azure AD) Tenant
-- Berechtigung zum Erstellen einer App-Registrierung (oder eine bereits vorhandene)
-- Die App-Registrierung benötigt die delegierte Berechtigung `DeviceManagementManagedDevices.Read.All`
-- Ein Intune-Administrator-Account für die erste Anmeldung (Admin Consent)
+> **Privacy:** The tool runs entirely in the browser. No data is sent to external servers. Tenant ID and Client ID are stored only in the browser's `sessionStorage` and discarded when the tab is closed.
 
 ---
 
-## Azure AD App-Registrierung
+## Requirements
 
-### Neue App erstellen
+- Modern browser (Chrome, Edge, Firefox, Safari)
+- Access to a Microsoft Entra ID (Azure AD) tenant
+- Permission to create an app registration (or an existing one)
+- The app registration requires the delegated permission `DeviceManagementManagedDevices.Read.All`
+- An Intune administrator account for the first sign-in (admin consent)
 
-1. Navigiere zu [portal.azure.com](https://portal.azure.com) → **Azure Active Directory** → **App-Registrierungen** → **Neue Registrierung**
-2. Wähle einen aussagekräftigen Namen, z.B. `Intune BIOS Compliance Checker`. Den Kontotyp auf **Nur dieses Verzeichnis** lassen.
-3. Plattform: **Single-Page Application (SPA)**. URI: die vollständige URL, unter der das Tool geöffnet wird. Das Tool zeigt die korrekte URI beim Öffnen automatisch an.
-4. Nach der Erstellung die **Anwendungs-ID (Client ID)** und die **Verzeichnis-ID (Tenant ID)** von der Übersichtsseite kopieren.
+---
 
-### Berechtigungen konfigurieren
+## Azure AD App Registration
 
-In der App-Registrierung unter **API-Berechtigungen**:
+### Create an app
 
-1. **Berechtigung hinzufügen** → **Microsoft Graph**
-2. Typ: **Delegierte Berechtigungen**
-3. `DeviceManagementManagedDevices.Read.All` suchen und aktivieren
-4. **Administratorzustimmung erteilen** (erfordert Intune-Admin-Rolle)
+1. Navigate to [portal.azure.com](https://portal.azure.com) → **Azure Active Directory** → **App registrations** → **New registration**
+2. Choose a descriptive name, e.g. `Intune BIOS Compliance Checker`. Leave the account type set to **This directory only**.
+3. Platform: **Single-page application (SPA)**. URI: the full URL where the tool will be opened. The tool displays the detected URI in the configuration field automatically.
+4. Copy the **Application (Client) ID** and **Directory (Tenant) ID** from the app overview page.
 
-> **Wichtig:** Die Berechtigung muss als *delegierte* Berechtigung eingetragen sein — nicht als Anwendungsberechtigung.
+### Configure permissions
+
+1. **Add a permission** → **Microsoft Graph**
+2. Type: **Delegated permissions**
+3. Search for `DeviceManagementManagedDevices.Read.All` and check the box
+4. **Grant admin consent** (requires Intune admin role)
+
+> **Important:** The permission must be added as a *delegated* permission — not as an application permission.
 
 ### Redirect URI
 
-Die Redirect URI muss exakt mit dem Pfad übereinstimmen, unter dem das HTML-File im Browser geöffnet wird:
-
 ```
-# Lokale Datei
-file:///C:/Users/Benutzername/Downloads/intune-geraete-uebersicht.html
+# Local file
+file:///C:/Users/Username/Downloads/intune-device-overview.html
 
-# Webserver
-https://tools.meinefirma.ch/intune-bios/
+# Web server
+https://tools.yourcompany.com/intune-bios/
 ```
 
 ---
 
-## Erste Anmeldung
+## First sign-in
 
-1. **Tenant ID** und **Client ID** in die Felder eingeben
-2. Klick auf **Mit Microsoft anmelden** — es öffnet sich ein Popup-Fenster
-3. Mit einem Intune-Leseberechtigten Account anmelden
-4. Beim ersten Mal ggf. den Zustimmungsdialog bestätigen
-5. Das Tool beginnt automatisch mit dem Datenabruf
+1. Enter **Tenant ID** and **Client ID**
+2. Click **Sign in with Microsoft** — a popup window will open
+3. Sign in with an Intune read-access account
+4. Confirm the consent dialog if prompted on the first use
+5. The tool will start loading device data automatically
 
-Tenant ID und Client ID werden in der `sessionStorage` gespeichert und stehen beim nächsten Öffnen im selben Tab wieder vor.
+If no cached account is present, the login popup opens immediately — no silent token attempt that would fail in a `file://` context.
 
 ---
 
-## Datenabruf
+## Data retrieval
 
-### Schritt 1 — Geräteliste
+### Step 1 — Device list
 
-Das Tool ruft alle Windows-Geräte aus Intune ab:
+The tool fetches all MDM-managed Windows devices. MDE-only devices (`managementAgent = msSense`) are excluded server-side via an allowlist filter:
 
 ```
 GET /beta/deviceManagement/managedDevices
     ?$select=deviceName,manufacturer,model,operatingSystem,osVersion,id
     &$filter=operatingSystem eq 'Windows'
+      and (managementAgent eq 'mdm' or managementAgent eq 'easMdm' ...)
     &$top=999
 ```
 
-Bei mehr als 999 Geräten werden automatisch alle Seiten via `@odata.nextLink` abgerufen.
+All pages are automatically retrieved via `@odata.nextLink` for tenants with more than 999 devices.
 
-### Schritt 2 — BIOS-Daten pro Gerät
+### Step 2 — BIOS data per device
 
-`hardwareInformation` ist im `/beta`-Endpunkt nur per Einzelabruf verfügbar:
+Since `hardwareInformation` is always returned empty by the list endpoint, an individual request is made for each device in batches of 10 parallel requests:
 
 ```
 GET /beta/deviceManagement/managedDevices/{id}
     ?$select=hardwareInformation
 ```
 
-Dieser Abruf erfolgt für alle Geräte parallel in Batches von je 10 Anfragen, um Graph API Throttling zu vermeiden.
-
-> **Ladezeit:** Bei 500 Geräten sind das ~50 Runden à 10 parallele Anfragen. Die Ladezeit beträgt je nach Tenant-Grösse und Netzwerk 1–3 Minuten.
+> **Loading time:** For 500 devices this means ~50 rounds of 10 parallel requests. Loading time is typically 1–3 minutes depending on tenant size and network speed.
 
 ---
 
-## BIOS-Compliance-Prüfung
+## BIOS compliance check
 
-### Versionsvergleich
+### Version comparison
 
-Die aktuelle BIOS-Version wird segmentweise numerisch mit der Mindestversion verglichen — nicht alphabetisch:
+The installed BIOS version is compared against the minimum version using numeric segment-by-segment comparison — not alphabetically:
 
 ```js
-compareVersions("01.10.00", "01.09.00")  →  1  (aktuell ≥ minimum ✓)
-compareVersions("1.8.0",    "1.10.0")    → -1  (veraltet ✗)
-compareVersions("1.10.0",   "1.10.0")   →  0  (exakt gleich ✓)
+compareVersions("01.10.00", "01.09.00")  →  1  (current >= minimum ✓)
+compareVersions("1.8.0",    "1.10.0")    → -1  (outdated ✗)
+compareVersions("1.10.0",   "1.10.0")   →  0  (exact match ✓)
 ```
 
-### Modellabgleich (Normalisierung + Fuzzy)
+### Model matching (normalisation + fuzzy)
 
-Intune liefert Modellnamen oft in ausführlicher Form:
-
-```
-HP EliteBook 860 16 Inch G10 Notebook PC   ← Intune
-HP EliteBook 860 16 G10                    ← HP-Datenbank
-```
-
-Der Abgleich läuft in drei Stufen:
-
-| Stufe | Methode | Beispiel |
+| Stage | Method | Example |
 |---|---|---|
-| 1 — Normalisierung | Störwörter entfernen (`Notebook PC`, `Inch`, `Laptop PC`, …) | `HP EliteBook 860 16 Inch G10 Notebook PC` → `hp elitebook 860 16 g10` |
-| 2 — Substring | Normalisierter DB-Schlüssel ist in Intune-Namen enthalten (oder umgekehrt) | `hp elitebook 840 g8` ⊂ `hp elitebook 840 g8 sonderconfig` |
-| 3 — Fuzzy (Jaccard) | Wortmengen-Ähnlichkeit ≥ 60 % | `hp elitebook 840-g8` ↔ `hp elitebook 840 g8` |
+| 1 — Normalisation | Strip noise words (`Notebook PC`, `Inch`, `Laptop PC`, …) | `HP EliteBook 860 16 Inch G10 Notebook PC` → `hp elitebook 860 16 g10` |
+| 2 — Substring | Normalised DB key is contained in Intune name (or vice versa) | `hp elitebook 840 g8` ⊂ `hp elitebook 840 g8 special` |
+| 3 — Fuzzy (Jaccard) | Word-set similarity ≥ 60 % | `hp elitebook 840-g8` ↔ `hp elitebook 840 g8` |
 
-Wenn ein Fuzzy-Match verwendet wird, zeigt ein Tooltip auf der Mindestversions-Zelle an, welcher DB-Eintrag abgeglichen wurde.
+### BIOS version extraction
 
-### BIOS-Versionsextraktion
-
-HP gibt BIOS-Versionen in Intune mit der BIOS Family als Präfix zurück:
+HP returns BIOS versions in Intune with the BIOS family as a prefix:
 
 ```
-V70 ver. 01.10.00   ← Intune (HP)
-01.10.00            ← HP-Datenbank
-```
-
-Das Tool extrahiert die numerische Version automatisch:
-
-```js
-// Regex: /ver\.?\s*(\d+[\d.]+)/i
 "V70 ver. 01.10.00"  →  "01.10.00"
 "T76 Ver. 01.22.00"  →  "01.22.00"
-"01.10.00"           →  "01.10.00"   // unverändert
-"1.32.1"             →  "1.32.1"     // unverändert
+"01.10.00"           →  "01.10.00"   (unchanged)
 ```
 
-Der ursprüngliche Rohwert aus Intune ist als Tooltip auf der BIOS-Zelle sichtbar und wird im CSV-Export als separate Spalte ausgegeben.
-
 ---
 
-## Filter & Sortierung
+## Secure Boot CSV import
 
-| Filter | Beschreibung |
-|---|---|
-| Freitextsuche | Sucht in Gerätename, Modell, BIOS-Version und Betriebssystem |
-| Hersteller | Dropdown mit allen vorhandenen Hersteller-Werten |
-| Modell | Dropdown mit allen vorhandenen Modell-Werten |
-| Status | Aktuell / Update erforderlich / Nicht geprüft |
+Secure Boot status and certificate status are not directly accessible via the Graph API.
 
-Alle Spalten sind durch Klick auf den Spaltentitel sortierbar. Versionsfelder werden numerisch-semantisch sortiert. Die Standardsortierung zeigt Geräte mit **Update erforderlich** zuerst.
+### Export the CSV
 
----
+In the Intune Admin Center: **Reports → Windows Autopatch → Windows quality updates → Reports → Secure Boot status → Export**
 
-## CSV-Export
+### Import the CSV
 
-Der Export über **CSV exportieren** umfasst immer die aktuell gefilterte Ansicht:
+After signing in, a CSV import card appears. Drop the CSV file on the drop zone or click to browse. The tool automatically joins the data by device name (case-insensitive).
 
-| Spalte | Inhalt |
-|---|---|
-| Gerätename | Intune-Gerätename |
-| Hersteller | Herstellername aus Intune |
-| Modell | Modellname aus Intune |
-| BIOS aktuell | Extrahierte numerische BIOS-Version |
-| BIOS aktuell (raw) | Rohwert wie von Intune geliefert |
-| BIOS Minimum | Mindestversion laut Hersteller-Datenbank |
-| DB-Modell (abgeglichen) | Tatsächlich verwendeter DB-Eintrag für den Match |
-| Status | Aktuell / Update nötig / — |
-| Betriebssystem | Betriebssystem aus Intune |
-| OS-Version | OS-Versionsnummer |
+The tool is fully usable without a CSV — Secure Boot and certificate columns display `—` until a CSV is imported.
 
-Die Datei wird als UTF-8 mit BOM exportiert und öffnet sich in Excel korrekt mit Umlauten.
+### Imported columns
 
----
-
-## BIOS-Datenbank
-
-Die Mindestversionen sind direkt im JavaScript des Tools als Lookup-Objekt hinterlegt:
-
-| Hersteller | Quelle | Stand |
+| Column in tool | Column in CSV | Possible values |
 |---|---|---|
-| Dell | [KB000347876](https://www.dell.com/support/kbdoc/en-us/000347876) | Februar 2026 |
+| Secure Boot | Secure Boot enabled | Yes / No / Unknown |
+| Certificate | Certificate status | Up to date / Not up to date / Not applicable |
+
+---
+
+## Filters & sorting
+
+| Filter | Description |
+|---|---|
+| Free text search | Searches device name, model, BIOS version and OS |
+| Manufacturer | Dropdown of all present manufacturer values |
+| Model | Dropdown of all present model values |
+| BIOS status | Up to date / Update required / Unknown |
+| Certificate status | Up to date / Not up to date / Not applicable / Unknown |
+
+All columns are sortable by clicking the column header. Version fields are sorted numerically. The default sort shows **Update required** devices first.
+
+---
+
+## CSV export
+
+| Column | Content |
+|---|---|
+| Device name | Intune device name |
+| Manufacturer | Manufacturer name from Intune |
+| Model | Model name from Intune |
+| BIOS current | Extracted numeric BIOS version |
+| BIOS current (raw) | Raw value as returned by Intune |
+| BIOS minimum | Minimum version from vendor database |
+| DB model (matched) | DB entry actually used for the match |
+| BIOS status | Up to date / Update required / — |
+| Secure Boot enabled | Value from imported CSV (empty if no import) |
+| Certificate status | Value from imported CSV (empty if no import) |
+| Operating system | OS from Intune |
+| OS version | OS version number |
+
+The file is exported as UTF-8 with BOM and opens correctly in Excel.
+
+---
+
+## BIOS database
+
+| Vendor | Source | As of |
+|---|---|---|
+| Dell | [KB000347876](https://www.dell.com/support/kbdoc/en-us/000347876) | February 2026 |
 | HP | [HP Support](https://support.hp.com/us-en/document/ish_13070353-13070429-16) | 2025/2026 |
-| Lenovo | [HT518129](https://support.lenovo.com/us/en/solutions/ht518129) | ausstehend |
+| Lenovo | [HT518129](https://support.lenovo.com/us/en/solutions/ht518129) | pending |
 
-> **Hinweis:** Die Hersteller aktualisieren ihre Listen laufend. Für kritische Compliance-Entscheidungen sollten die Quellartikel direkt konsultiert werden.
+> **Note:** Vendors update their lists continuously. For critical compliance decisions, consult the source articles directly.
 
 ---
 
-## Status-Codes
+## Status codes
 
-| Status | Bedeutung |
+### BIOS status
+
+| Status | Meaning |
 |---|---|
-| **Aktuell** ✅ | Installierte BIOS-Version ≥ Mindestversion. Das Gerät erfüllt die Voraussetzung für das Secure Boot 2023 Zertifikats-Update. |
-| **Update erforderlich** ❌ | Installierte BIOS-Version < Mindestversion. Ein BIOS-Update ist notwendig, bevor das Secure Boot Zertifikat über Windows Update eingespielt werden kann. |
-| **—** (nicht geprüft) | Kein Eintrag in der Datenbank für diesen Hersteller/Modell, oder `hardwareInformation` enthält keine BIOS-Version. Manuelle Prüfung empfohlen. |
+| **Up to date** ✅ | BIOS version ≥ minimum version. Device meets the prerequisite for the Secure Boot 2023 certificate update. |
+| **Update required** ❌ | BIOS version < minimum version. A BIOS update is required. |
+| **—** | No DB entry or no BIOS version returned by Intune. Manual review recommended. |
 
----
+### Secure Boot status (from CSV)
 
-## Graph API Referenz
-
-### Verwendete Endpunkte
-
-| Endpunkt | Zweck |
+| Status | Meaning |
 |---|---|
-| `GET /beta/deviceManagement/managedDevices` | Geräteliste (Windows-gefiltert, paginiert) |
-| `GET /beta/deviceManagement/managedDevices/{id}` | BIOS-Daten eines einzelnen Geräts |
-| `POST /oauth2/v2.0/token` | Token-Anfrage (via MSAL) |
+| **Yes** ✅ | Secure Boot is enabled. |
+| **No** ❌ | Secure Boot is disabled. |
+| **Unknown** | No diagnostic data available from the device. |
 
-### Warum Beta-Endpunkt?
+### Certificate status (from CSV)
 
-Das Feld `hardwareInformation.systemManagementBIOSVersion` ist nur im `/beta`-Endpunkt verfügbar. Im stabilen `/v1.0`-Endpunkt existiert `hardwareInformation` nicht als selektierbares Feld.
-
-### Warum Einzelabruf statt Liste?
-
-`hardwareInformation` wird beim Listen-Endpunkt grundsätzlich leer zurückgegeben — auch wenn es explizit in `$select` aufgeführt wird. Nur der Einzelabruf eines Geräts via `/managedDevices/{id}` liefert das befüllte Objekt.
+| Status | Meaning |
+|---|---|
+| **Up to date** ✅ | Secure Boot 2023 certificates are installed. |
+| **Not up to date** ❌ | 2011 certificates still active. BIOS update + Windows Update required. |
+| **Not applicable** | Not applicable, e.g. Secure Boot is disabled. |
 
 ---
 
-## Fehlerbehebung
+## Graph API reference
 
-| Problem | Ursache | Lösung |
+### Endpoints used
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /beta/deviceManagement/managedDevices` | Device list (filtered, paginated) |
+| `GET /beta/deviceManagement/managedDevices/{id}` | BIOS data for a single device |
+| `POST /oauth2/v2.0/token` | Token request (via MSAL) |
+
+### Device filtering
+
+Since the OData `ne` operator is not supported for enum fields, the tool uses an allowlist:
+
+```
+$filter=operatingSystem eq 'Windows'
+  and (managementAgent eq 'mdm'
+       or managementAgent eq 'easMdm'
+       or managementAgent eq 'intuneClient'
+       or managementAgent eq 'easIntuneClient'
+       or managementAgent eq 'configurationManagerClientMdm'
+       or managementAgent eq 'configurationManagerClientMdmEas'
+       or managementAgent eq 'microsoft365ManagedMdm'
+       or managementAgent eq 'intuneAosp')
+```
+
+### Why the beta endpoint?
+
+`hardwareInformation.systemManagementBIOSVersion` is only available in the `/beta` endpoint.
+
+### Why individual requests instead of the list?
+
+`hardwareInformation` is always returned empty by the list endpoint. Only an individual request via `/managedDevices/{id}` returns the populated object.
+
+---
+
+## Troubleshooting
+
+| Problem | Cause | Solution |
 |---|---|---|
-| Popup öffnet sich nicht | Browser blockiert Popups | Popups für die Seite im Browser erlauben |
-| `AADSTS50011`: Redirect URI stimmt nicht überein | URI in App-Registrierung weicht vom Dateipfad ab | URI aus dem Tool kopieren und in Azure exakt so eintragen (Plattform: SPA) |
-| `Insufficient privileges` | Admin Consent fehlt oder falsche Berechtigungsart | Berechtigung als *delegiert* eintragen und Admin Consent erteilen |
-| BIOS-Version überall leer | Intune hat `hardwareInformation` noch nicht synchronisiert | Gerät in Intune → Synchronisieren → nach 15 Min. erneut versuchen |
-| Status zeigt überall `—` | Modellname aus Intune wird nicht erkannt | CSV exportieren, Spalte *DB-Modell (abgeglichen)* prüfen; ggf. Eintrag in `BIOS_DB` ergänzen |
-| Sehr lange Ladezeit | Viele Geräte, jedes braucht einen eigenen API-Request | Normal. Bei 1000+ Geräten 3–5 Minuten einplanen. |
+| Popup does not open / `popup_window_error` | Browser blocks popups | Allow popups for this page in browser settings |
+| `AADSTS50011`: Redirect URI mismatch | URI differs from actual file path | Copy URI from the tool, register in Azure as SPA |
+| `Insufficient privileges` | Admin consent missing | Add as *delegated* permission, grant admin consent |
+| MDE-only devices still visible | Stale cache | Sign out and sign in again |
+| BIOS version empty everywhere | Intune not synced | Sync device in Intune, retry after 15 minutes |
+| Status shows `—` everywhere | Model name not recognised | Check CSV export, column *DB model (matched)* |
+| CSV import shows error | Wrong CSV file | Use only the Secure Boot Status CSV export from Intune |
+| Very long loading time | Many devices | Expected. Allow 3–5 minutes for 1000+ devices. |
 
 ---
 
 ## Changelog
 
+### v2.0 — April 2026
+- Secure Boot CSV import: drag & drop or file picker after sign-in
+- New table columns: *Secure Boot enabled* and *Certificate status*
+- New filter by certificate status
+- CSV export includes Secure Boot and certificate columns
+- Fix: login popup was not opening when no cached account was present
+
+### v1.9 — April 2026
+- MDE-only devices (`msSense`/`microsoftSense`) excluded server-side via allowlist filter
+
 ### v1.8 — April 2026
-- Windows-Filter direkt im Graph API Request (`$filter=operatingSystem eq 'Windows'`) — iOS/Android werden nicht mehr abgerufen
+- Windows-only filter in Graph API request
 
 ### v1.7 — April 2026
-- Vollständig fluides Layout ohne feste `max-width`
-- `table-layout: auto` — Spalten passen sich dem Inhalt an
-- Gerätename und Modell können umbrechen statt abgeschnitten zu werden
-- Filter- und Stats-Grid mit `auto-fit` für alle Bildschirmbreiten
+- Fluid layout, `table-layout: auto`, `auto-fit` grids
 
 ### v1.6 — April 2026
-- `extractBiosVersion()`: HP-Format `V70 ver. 01.10.00` → `01.10.00`
-- Rohwert-Tooltip auf BIOS-Zelle und zusätzliche CSV-Spalte *BIOS aktuell (raw)*
+- `extractBiosVersion()`: HP format `V70 ver. 01.10.00` → `01.10.00`
+- Raw value tooltip and CSV column *BIOS current (raw)*
 
 ### v1.5 — April 2026
-- Dreistufiger Modellabgleich: Normalisierung → Substring → Fuzzy (Jaccard ≥ 60 %)
-- Tooltip auf Mindestversions-Zelle zeigt abgeglichenen DB-Eintrag
-- CSV-Spalte *DB-Modell (abgeglichen)*
+- Three-stage model matching: normalisation → substring → fuzzy (Jaccard ≥ 60 %)
 
 ### v1.4 — April 2026
-- HP-Datenbank integriert (296 Modelle: Business Notebooks, Desktops, ZBooks, Thin Clients, POS)
+- HP database integrated (296 models)
 
 ### v1.3 — April 2026
-- Dell-Datenbank integriert (~320 Modelle: Latitude, OptiPlex, Precision, XPS, Vostro, Alienware, …)
-- Compliance-Spalten: BIOS aktuell, BIOS Minimum, Status
-- Versionsvergleich semantisch-numerisch
-- 4 Summary-Kacheln, Status-Filter
-- CSV-Export mit Compliance-Daten
+- Dell database integrated (~320 models), compliance columns, numeric version comparison
 
-### v1.2 — April 2026
-- Fix: `hardwareInformation` per Einzelabruf statt Listenendpunkt
-- Zweistufiger Ladefortschritt (Geräteliste + BIOS-Daten)
-
-### v1.1 — April 2026
-- Fix: `/beta`-Endpunkt statt `/v1.0` für `hardwareInformation`
-
-### v1.0 — April 2026
-- Initiale Version: MSAL-Login, Graph-Abruf, Filter, Sortierung, CSV-Export, Dark Mode, Abmelden
+### v1.0–1.2 — April 2026
+- Initial release: MSAL login, Graph fetch, filters, sorting, CSV export, dark mode
+- Fix: `/beta` endpoint for `hardwareInformation`
+- Fix: BIOS data via individual request instead of list endpoint
