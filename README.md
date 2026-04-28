@@ -1,6 +1,6 @@
 # Intune BIOS Compliance Checker — Complete Documentation
 
-**Graph variant v2.0 · CSV variant v1.1**
+**Graph variant v2.0 · CSV variant v1.5**
 
 Documentation for both variants of the Intune BIOS Compliance Checker, including a comparison, shared features, and variant-specific details.
 
@@ -54,7 +54,7 @@ Both variants of the tool compare the installed BIOS version against the minimum
 | Feature | Graph variant | CSV variant |
 |---|---|---|
 | **File** | `intune-device-overview.html` | `intune-bios-compliance-csv.html` |
-| **Version** | v2.0 | v1.1 |
+| **Version** | v2.0 | v1.5 |
 | Sign-in required | ✅ Azure AD | ❌ Not required |
 | App registration | ✅ Required | ❌ Not required |
 | Admin consent | ✅ Required | ❌ Not required |
