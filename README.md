@@ -352,7 +352,7 @@ $filter=... and (managementAgent eq 'mdm' or managementAgent eq 'easMdm'
 
 ## CSV variant
 
-File: `intune-bios-compliance-csv.html` · Version: **v1.1**
+File: `intune-bios-compliance-csv.html` · Version: **v1.5**
 
 ### Requirements (CSV)
 
@@ -413,7 +413,7 @@ The `SystemManagementBIOSVersion` column is identified by searching for the keyw
 
 ### Changelog CSV
 
-#### v1.1 — April 2026
+#### v1.5 — April 2026
 - MDE-only devices excluded during parsing based on `Managed by = MDE`
 - Drop zone layout revised: texts and drop zones in separate rows
 - Various syntax fixes
