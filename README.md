@@ -1,274 +1,274 @@
-# Intune BIOS Compliance Checker — Gesamtdokumentation
+# Intune BIOS Compliance Checker — Complete Documentation
 
-**Graph-Variante v2.0 · CSV-Variante v1.1**
+**Graph variant v2.0 · CSV variant v1.1**
 
-Dokumentation beider Varianten des Intune BIOS Compliance Checkers inklusive Vergleich, gemeinsamer Funktionen und variantenspezifischer Besonderheiten.
+Documentation for both variants of the Intune BIOS Compliance Checker, including a comparison, shared features, and variant-specific details.
 
 ---
 
-## Inhaltsverzeichnis
+## Table of Contents
 
-- [Hintergrund](#hintergrund)
-- [Variantenvergleich](#variantenvergleich)
-- [Gemeinsame Funktionen](#gemeinsame-funktionen)
-  - [BIOS-Compliance-Prüfung](#bios-compliance-prüfung)
-  - [Secure Boot CSV-Import](#secure-boot-csv-import)
-  - [Summary-Kacheln](#summary-kacheln)
-  - [Filter & Sortierung](#filter--sortierung)
-  - [CSV-Export](#csv-export)
-  - [BIOS-Datenbank](#bios-datenbank)
-  - [Status-Codes](#status-codes)
-- [Graph-Variante](#graph-variante)
-  - [Voraussetzungen](#voraussetzungen-graph)
-  - [Azure AD App-Registrierung](#azure-ad-app-registrierung)
-  - [Erste Anmeldung](#erste-anmeldung)
-  - [Datenabruf via Graph API](#datenabruf-via-graph-api)
-  - [Fehlerbehebung Graph](#fehlerbehebung-graph)
+- [Background](#background)
+- [Variant comparison](#variant-comparison)
+- [Shared features](#shared-features)
+  - [BIOS compliance check](#bios-compliance-check)
+  - [Secure Boot CSV import](#secure-boot-csv-import)
+  - [Summary tiles](#summary-tiles)
+  - [Filters & sorting](#filters--sorting)
+  - [CSV export](#csv-export)
+  - [BIOS database](#bios-database)
+  - [Status codes](#status-codes)
+- [Graph variant](#graph-variant)
+  - [Requirements](#requirements-graph)
+  - [Azure AD app registration](#azure-ad-app-registration)
+  - [First sign-in](#first-sign-in)
+  - [Data retrieval via Graph API](#data-retrieval-via-graph-api)
+  - [Troubleshooting Graph](#troubleshooting-graph)
   - [Changelog Graph](#changelog-graph)
-- [CSV-Variante](#csv-variante)
-  - [Voraussetzungen](#voraussetzungen-csv)
-  - [Geräte-CSV exportieren](#geräte-csv-exportieren)
-  - [CSV importieren & Analyse starten](#csv-importieren--analyse-starten)
-  - [CSV-Parsing-Logik](#csv-parsing-logik)
-  - [Fehlerbehebung CSV](#fehlerbehebung-csv)
+- [CSV variant](#csv-variant)
+  - [Requirements](#requirements-csv)
+  - [Export the device CSV](#export-the-device-csv)
+  - [Import CSV & run analysis](#import-csv--run-analysis)
+  - [CSV parsing logic](#csv-parsing-logic)
+  - [Troubleshooting CSV](#troubleshooting-csv)
   - [Changelog CSV](#changelog-csv)
 
 ---
 
-## Hintergrund
+## Background
 
-Die Microsoft Secure Boot Zertifikate aus dem Jahr 2011 laufen ab Juni 2026 aus. Damit Windows-Geräte weiterhin Secure-Boot-bezogene Sicherheitsupdates erhalten können, müssen OEM-Hersteller BIOS-Updates mit den neuen 2023-Zertifikaten bereitstellen — und diese müssen auf den Geräten installiert sein.
+The Microsoft Secure Boot certificates issued in 2011 begin expiring in June 2026. For Windows devices to continue receiving Secure Boot-related security updates, OEM vendors must ship BIOS updates containing the new 2023 certificates — and those updates must be installed on devices.
 
-Beide Varianten des Tools vergleichen die installierte BIOS-Version mit den von Dell und HP veröffentlichten Mindestversionen. Sie unterscheiden sich ausschliesslich in der Art, wie die Gerätedaten bezogen werden.
+Both variants of the tool compare the installed BIOS version against the minimum versions published by Dell and HP. They differ only in how device data is retrieved.
 
-| Unterstützte Hersteller | Dell-Modelle | HP-Modelle | Lenovo-Modelle |
+| Supported vendors | Dell models | HP models | Lenovo models |
 |---|---|---|---|
-| 3 | ~320 | 296 | ausstehend |
+| 3 | ~320 | 296 | pending |
 
-> **Datenschutz:** Beide Tools laufen vollständig im Browser. Es werden keine Daten an externe Server gesendet.
+> **Privacy:** Both tools run entirely in the browser. No data is transmitted to external servers.
 
 ---
 
-## Variantenvergleich
+## Variant comparison
 
-| Merkmal | Graph-Variante | CSV-Variante |
+| Feature | Graph variant | CSV variant |
 |---|---|---|
-| **Datei** | `intune-geraete-uebersicht.html` | `intune-bios-compliance-csv.html` |
+| **File** | `intune-device-overview.html` | `intune-bios-compliance-csv.html` |
 | **Version** | v2.0 | v1.1 |
-| Login erforderlich | ✅ Azure AD | ❌ Nicht nötig |
-| App-Registrierung | ✅ Erforderlich | ❌ Nicht nötig |
-| Admin Consent | ✅ Erforderlich | ❌ Nicht nötig |
-| Datenbezug | Live via Microsoft Graph API | CSV-Export aus Intune Admin Center |
-| Aktualität der Daten | Echtzeit | Stand des CSV-Exports |
-| Ladezeit | 1–3 Min. (API-Requests pro Gerät) | Sofort (lokales Parsen) |
-| MDE-Geräte-Filter | Serverseitig via OData Allowlist | Clientseitig via `Managed by = MDE` |
-| Automatisierbar | Ja (API) | Nur manuell |
-| Offline nutzbar | Nein (Graph API erforderlich) | Ja (nach CSV-Import) |
-| BIOS-Compliance-Prüfung | ✅ Identisch | ✅ Identisch |
-| Modellabgleich | ✅ Identisch | ✅ Identisch |
-| Secure Boot CSV-Import | ✅ Ja | ✅ Ja |
-| Summary-Kacheln | ✅ Identisch | ✅ Identisch |
-| CSV-Export | ✅ Identisch | ✅ Identisch |
+| Sign-in required | ✅ Azure AD | ❌ Not required |
+| App registration | ✅ Required | ❌ Not required |
+| Admin consent | ✅ Required | ❌ Not required |
+| Data source | Live via Microsoft Graph API | CSV export from Intune Admin Center |
+| Data freshness | Real-time | As of the CSV export date |
+| Loading time | 1–3 min (API request per device) | Instant (local parsing) |
+| MDE device filter | Server-side via OData allowlist | Client-side via `Managed by = MDE` |
+| Automatable | Yes (API) | Manual only |
+| Works offline | No (Graph API required) | Yes (after CSV import) |
+| BIOS compliance check | ✅ Identical | ✅ Identical |
+| Model matching | ✅ Identical | ✅ Identical |
+| Secure Boot CSV import | ✅ Yes | ✅ Yes |
+| Summary tiles | ✅ Identical | ✅ Identical |
+| CSV export | ✅ Identical | ✅ Identical |
 
-**Wann welche Variante?**
+**When to use which variant?**
 
-- **Graph-Variante** → wenn Echtzeit-Daten benötigt werden, regelmässige Prüfungen geplant sind oder keine CSV-Exporte erstellt werden können
-- **CSV-Variante** → wenn keine App-Registrierung möglich ist, kein Azure AD Zugriff besteht, oder die Analyse ad-hoc ohne IT-Berechtigungen durchgeführt werden soll
+- **Graph variant** → when real-time data is needed, regular checks are planned, or no CSV exports can be created
+- **CSV variant** → when no app registration is possible, Azure AD access is unavailable, or an ad-hoc analysis without IT permissions is required
 
 ---
 
-## Gemeinsame Funktionen
+## Shared features
 
-Folgende Funktionen sind in beiden Varianten identisch implementiert.
+The following features are implemented identically in both variants.
 
-### BIOS-Compliance-Prüfung
+### BIOS compliance check
 
-#### Versionsvergleich
+#### Version comparison
 
-Die aktuelle BIOS-Version wird segmentweise numerisch verglichen — nicht alphabetisch:
+The installed BIOS version is compared against the minimum version using numeric segment-by-segment comparison — not alphabetically:
 
 ```js
-compareVersions("01.10.00", "01.09.00")  →  1  (aktuell >= minimum ✓)
-compareVersions("1.8.0",    "1.10.0")    → -1  (veraltet ✗)
-compareVersions("1.10.0",   "1.10.0")   →  0  (exakt gleich ✓)
+compareVersions("01.10.00", "01.09.00")  →  1  (current >= minimum ✓)
+compareVersions("1.8.0",    "1.10.0")    → -1  (outdated ✗)
+compareVersions("1.10.0",   "1.10.0")   →  0  (exact match ✓)
 ```
 
-#### Modellabgleich (Normalisierung + Fuzzy)
+#### Model matching (normalisation + fuzzy)
 
-Intune liefert Modellnamen oft in ausführlicher Form. Der Abgleich läuft in drei Stufen:
+Intune often returns verbose model names. The matching runs in three stages:
 
-| Stufe | Methode | Beispiel |
+| Stage | Method | Example |
 |---|---|---|
-| 1 — Normalisierung | Störwörter entfernen (`Notebook PC`, `Inch`, `Laptop PC`, …) | `HP EliteBook 860 16 Inch G10 Notebook PC` → `hp elitebook 860 16 g10` |
-| 2 — Substring | Normalisierter DB-Schlüssel ist in Intune-Namen enthalten | `hp elitebook 840 g8` ⊂ `hp elitebook 840 g8 sonderconfig` |
-| 3 — Fuzzy (Jaccard) | Wortmengen-Ähnlichkeit ≥ 60 % | `hp elitebook 840-g8` ↔ `hp elitebook 840 g8` |
+| 1 — Normalisation | Strip noise words (`Notebook PC`, `Inch`, `Laptop PC`, …) | `HP EliteBook 860 16 Inch G10 Notebook PC` → `hp elitebook 860 16 g10` |
+| 2 — Substring | Normalised DB key is contained in Intune name (or vice versa) | `hp elitebook 840 g8` ⊂ `hp elitebook 840 g8 special` |
+| 3 — Fuzzy (Jaccard) | Word-set similarity ≥ 60 % | `hp elitebook 840-g8` ↔ `hp elitebook 840 g8` |
 
-Ein Tooltip auf der Mindestversions-Zelle zeigt an, welcher DB-Eintrag für den Match verwendet wurde.
+A tooltip on the minimum version cell shows which DB entry was used for the match.
 
-#### BIOS-Versionsextraktion
+#### BIOS version extraction
 
-HP gibt BIOS-Versionen mit der BIOS Family als Präfix zurück:
+HP returns BIOS versions with the BIOS family as a prefix:
 
 ```
 "V70 ver. 01.10.00"  →  "01.10.00"
 "T76 Ver. 01.22.00"  →  "01.22.00"
-"01.10.00"           →  "01.10.00"   (unverändert)
+"01.10.00"           →  "01.10.00"   (unchanged)
 ```
 
-Der Rohwert aus Intune wird als Tooltip und als separate CSV-Spalte ausgegeben.
+The raw value is shown as a tooltip and exported as a separate CSV column.
 
 ---
 
-### Secure Boot CSV-Import
+### Secure Boot CSV import
 
-Secure Boot Status und Zertifikat-Status sind über die Graph API nicht direkt abrufbar — sie stehen nur im Intune Reporting zur Verfügung. Beide Varianten unterstützen den gleichen optionalen CSV-Import.
+Secure Boot status and certificate status are not directly accessible via the Graph API — they are only available in Intune Reporting. Both variants support the same optional CSV import.
 
-**Export:** Intune Admin Center → **Reports → Windows Autopatch → Windows quality updates → Reports → Secure Boot status → Exportieren**
+**Export:** Intune Admin Center → **Reports → Windows Autopatch → Windows quality updates → Reports → Secure Boot status → Export**
 
-**Import:** Per Drag & Drop oder Klick-Dialog. Verknüpfung mit Gerätedaten erfolgt automatisch über den Gerätenamen (case-insensitive).
+**Import:** Drag & drop or click to browse. The tool automatically joins data by device name (case-insensitive).
 
-| Spalte im Tool | Spalte in der CSV | Mögliche Werte |
+| Column in tool | Column in CSV | Possible values |
 |---|---|---|
 | Secure Boot | Secure Boot enabled | Yes / No / Unknown |
-| Zertifikat | Certificate status | Up to date / Not up to date / Not applicable |
+| Certificate | Certificate status | Up to date / Not up to date / Not applicable |
 
-Das Tool ist ohne CSV vollständig nutzbar — die Spalten zeigen `—` bis ein CSV importiert wurde.
+The tool is fully usable without a CSV — columns show `—` until a CSV is imported.
 
 ---
 
-### Summary-Kacheln
+### Summary tiles
 
-Beide Varianten zeigen bis zu fünf Kacheln oberhalb der Tabelle:
+Both variants display up to five tiles above the table:
 
-| Kachel | Inhalt | Sichtbar |
+| Tile | Content | Visible |
 |---|---|---|
-| Geräte gesamt | Anzahl geladener Windows-Geräte | Immer |
-| BIOS aktuell | Geräte mit BIOS-Version ≥ Mindestversion | Immer |
-| Update erforderlich | Geräte mit BIOS-Version < Mindestversion | Immer |
-| Nicht geprüft | Geräte ohne DB-Eintrag oder ohne BIOS-Version | Immer |
-| **UEFI Cert aktuell** | Geräte mit `Certificate status = Up to date` aus Secure Boot CSV | Nur nach CSV-Import |
+| Total devices | Number of Windows devices loaded | Always |
+| BIOS up to date | Devices with BIOS version ≥ minimum version | Always |
+| Update required | Devices with BIOS version < minimum version | Always |
+| Not checked | Devices without a DB entry or without a BIOS version | Always |
+| **UEFI Cert up to date** | Devices with `Certificate status = Up to date` from Secure Boot CSV | After CSV import only |
 
 ---
 
-### Filter & Sortierung
+### Filters & sorting
 
-| Filter | Beschreibung |
+| Filter | Description |
 |---|---|
-| Freitextsuche | Sucht in Gerätename, Modell, BIOS-Version und Betriebssystem |
-| Hersteller | Dropdown mit allen vorhandenen Hersteller-Werten |
-| Modell | Dropdown mit allen vorhandenen Modell-Werten |
-| BIOS-Status | Aktuell / Update erforderlich / Nicht geprüft |
-| Zertifikat-Status | Up to date / Not up to date / Not applicable / Unbekannt |
+| Free text search | Searches device name, model, BIOS version and OS |
+| Manufacturer | Dropdown of all present manufacturer values |
+| Model | Dropdown of all present model values |
+| BIOS status | Up to date / Update required / Not checked |
+| Certificate status | Up to date / Not up to date / Not applicable / Unknown |
 
-Alle Spalten sind durch Klick auf den Spaltentitel sortierbar. Die Standardsortierung zeigt Geräte mit **Update erforderlich** zuerst.
+All columns are sortable by clicking the column header. The default sort shows **Update required** devices first.
 
 ---
 
-### CSV-Export
+### CSV export
 
-Der Export über **CSV exportieren** umfasst immer die aktuell gefilterte Ansicht:
+The **Export CSV** button saves the currently filtered view:
 
-| Spalte | Inhalt |
+| Column | Content |
 |---|---|
-| Gerätename | Gerätename |
-| Hersteller | Herstellername |
-| Modell | Modellname |
-| BIOS aktuell | Extrahierte numerische BIOS-Version |
-| BIOS aktuell (raw) | Rohwert (z.B. `V70 Ver. 01.10.00`) |
-| BIOS Minimum | Mindestversion laut Hersteller-Datenbank |
-| DB-Modell (abgeglichen) | Tatsächlich verwendeter DB-Eintrag |
-| BIOS Status | Aktuell / Update nötig / — |
-| Secure Boot aktiviert | Wert aus Secure Boot CSV (leer wenn nicht importiert) |
-| Zertifikat Status | Wert aus Secure Boot CSV (leer wenn nicht importiert) |
-| Betriebssystem | Betriebssystem |
-| OS-Version | OS-Versionsnummer |
+| Device name | Device name |
+| Manufacturer | Manufacturer name |
+| Model | Model name |
+| Current BIOS | Extracted numeric BIOS version |
+| Current BIOS (raw) | Raw value (e.g. `V70 Ver. 01.10.00`) |
+| Minimum BIOS | Minimum version from vendor database |
+| DB model (matched) | DB entry actually used for the match |
+| BIOS status | Up to date / Update required / — |
+| Secure Boot enabled | Value from Secure Boot CSV (empty if not imported) |
+| Certificate status | Value from Secure Boot CSV (empty if not imported) |
+| Operating system | Operating system |
+| OS version | OS version number |
 
-Datei wird als UTF-8 mit BOM exportiert — öffnet sich in Excel korrekt mit Umlauten.
+File is exported as UTF-8 with BOM — opens correctly in Excel.
 
 ---
 
-### BIOS-Datenbank
+### BIOS database
 
-Die Mindestversionen sind direkt im HTML-File hinterlegt — identisch in beiden Varianten:
+The minimum versions are embedded directly in the HTML file — identical in both variants:
 
-| Hersteller | Quelle | Stand |
+| Vendor | Source | As of |
 |---|---|---|
-| Dell | [KB000347876](https://www.dell.com/support/kbdoc/en-us/000347876) | Februar 2026 |
+| Dell | [KB000347876](https://www.dell.com/support/kbdoc/en-us/000347876) | February 2026 |
 | HP | [HP Support](https://support.hp.com/us-en/document/ish_13070353-13070429-16) | 2025/2026 |
-| Lenovo | [HT518129](https://support.lenovo.com/us/en/solutions/ht518129) | ausstehend |
+| Lenovo | [HT518129](https://support.lenovo.com/us/en/solutions/ht518129) | pending |
 
-> Die Hersteller aktualisieren ihre Listen laufend. Für kritische Compliance-Entscheidungen die Quellartikel direkt konsultieren.
-
----
-
-### Status-Codes
-
-#### BIOS-Status
-
-| Status | Bedeutung |
-|---|---|
-| **Aktuell** ✅ | BIOS-Version ≥ Mindestversion. Voraussetzung für Secure Boot 2023 Update erfüllt. |
-| **Update erforderlich** ❌ | BIOS-Version < Mindestversion. BIOS-Update notwendig. |
-| **—** | Kein DB-Eintrag oder keine BIOS-Version. Manuelle Prüfung empfohlen. |
-
-#### Secure Boot Status (aus CSV)
-
-| Status | Bedeutung |
-|---|---|
-| **Ja** ✅ | Secure Boot ist aktiviert. |
-| **Nein** ❌ | Secure Boot ist deaktiviert. |
-| **Unbekannt / —** | Keine Daten oder CSV nicht importiert. |
-
-#### Zertifikat-Status (aus CSV)
-
-| Status | Bedeutung |
-|---|---|
-| **Up to date** ✅ | Secure Boot 2023 Zertifikate installiert. |
-| **Not up to date** ❌ | Noch 2011 Zertifikate aktiv. BIOS-Update + Windows Update erforderlich. |
-| **Not applicable / —** | Nicht anwendbar oder CSV nicht importiert. |
+> Vendors update their lists continuously. For critical compliance decisions, consult the source articles directly.
 
 ---
 
-## Graph-Variante
+### Status codes
 
-Datei: `intune-geraete-uebersicht.html` · Version: **v2.0**
+#### BIOS status
 
-### Voraussetzungen (Graph)
+| Status | Meaning |
+|---|---|
+| **Up to date** ✅ | BIOS version ≥ minimum version. Prerequisite for Secure Boot 2023 update met. |
+| **Update required** ❌ | BIOS version < minimum version. BIOS update required. |
+| **—** | No DB entry or no BIOS version. Manual review recommended. |
 
-- Moderner Browser (Chrome, Edge, Firefox, Safari)
-- Microsoft Entra ID (Azure AD) Tenant-Zugriff
-- App-Registrierung mit delegierter Berechtigung `DeviceManagementManagedDevices.Read.All`
-- Intune-Administrator-Account für Admin Consent
+#### Secure Boot status (from CSV)
 
-### Azure AD App-Registrierung
+| Status | Meaning |
+|---|---|
+| **Yes** ✅ | Secure Boot is enabled. |
+| **No** ❌ | Secure Boot is disabled. |
+| **Unknown / —** | No data available or CSV not imported. |
 
-1. [portal.azure.com](https://portal.azure.com) → **Azure Active Directory** → **App-Registrierungen** → **Neue Registrierung**
-2. Name z.B. `Intune BIOS Compliance Checker`, Kontotyp: **Nur dieses Verzeichnis**
-3. Plattform: **Single-Page Application (SPA)** · Redirect URI: vollständige URL des Tools (wird im Tool angezeigt)
-4. **API-Berechtigungen** → **Hinzufügen** → **Microsoft Graph** → **Delegierte Berechtigungen** → `DeviceManagementManagedDevices.Read.All`
-5. **Administratorzustimmung erteilen**
-6. **Anwendungs-ID (Client ID)** und **Verzeichnis-ID (Tenant ID)** kopieren
+#### Certificate status (from CSV)
 
-> Die Berechtigung muss als *delegierte* Berechtigung eingetragen sein — nicht als Anwendungsberechtigung.
+| Status | Meaning |
+|---|---|
+| **Up to date** ✅ | Secure Boot 2023 certificates installed. |
+| **Not up to date** ❌ | 2011 certificates still active. BIOS update + Windows Update required. |
+| **Not applicable / —** | Not applicable or CSV not imported. |
 
-**Redirect URI Beispiele:**
+---
+
+## Graph variant
+
+File: `intune-device-overview.html` · Version: **v2.0**
+
+### Requirements (Graph)
+
+- Modern browser (Chrome, Edge, Firefox, Safari)
+- Microsoft Entra ID (Azure AD) tenant access
+- App registration with delegated permission `DeviceManagementManagedDevices.Read.All`
+- Intune administrator account for admin consent
+
+### Azure AD app registration
+
+1. [portal.azure.com](https://portal.azure.com) → **Azure Active Directory** → **App registrations** → **New registration**
+2. Name e.g. `Intune BIOS Compliance Checker`, account type: **This directory only**
+3. Platform: **Single-page application (SPA)** · Redirect URI: full URL of the tool (displayed in the tool)
+4. **API permissions** → **Add** → **Microsoft Graph** → **Delegated permissions** → `DeviceManagementManagedDevices.Read.All`
+5. **Grant admin consent**
+6. Copy the **Application (Client) ID** and **Directory (Tenant) ID**
+
+> The permission must be added as a *delegated* permission — not as an application permission.
+
+**Redirect URI examples:**
 ```
-file:///C:/Users/Benutzername/Downloads/intune-geraete-uebersicht.html
-https://tools.meinefirma.ch/intune-bios/
+file:///C:/Users/Username/Downloads/intune-device-overview.html
+https://tools.yourcompany.com/intune-bios/
 ```
 
-### Erste Anmeldung
+### First sign-in
 
-1. **Tenant ID** und **Client ID** in die Felder eingeben
-2. **Mit Microsoft anmelden** → Popup öffnet sich
-3. Mit Intune-Lesezugriff-Account anmelden, ggf. Zustimmung bestätigen
-4. Das Tool startet automatisch den Datenabruf
+1. Enter **Tenant ID** and **Client ID**
+2. **Sign in with Microsoft** → popup opens
+3. Sign in with an Intune read-access account, confirm consent if prompted
+4. The tool starts loading data automatically
 
-Gibt es noch keinen gecachten Account, wird direkt das Login-Popup geöffnet.
+If no cached account is present, the login popup opens immediately.
 
-### Datenabruf via Graph API
+### Data retrieval via Graph API
 
-**Schritt 1 — Geräteliste** (Windows + MDM-only, MDE ausgeschlossen):
+**Step 1 — Device list** (Windows + MDM-only, MDE excluded):
 
 ```
 GET /beta/deviceManagement/managedDevices
@@ -279,20 +279,20 @@ GET /beta/deviceManagement/managedDevices
     &$top=999
 ```
 
-Bei > 999 Geräten werden alle Seiten via `@odata.nextLink` abgerufen.
+For > 999 devices, all pages are retrieved via `@odata.nextLink`.
 
-**Schritt 2 — BIOS-Daten pro Gerät** (Einzelabruf nötig, da List-Endpunkt `hardwareInformation` leer zurückgibt):
+**Step 2 — BIOS data per device** (individual request required, list endpoint returns `hardwareInformation` empty):
 
 ```
 GET /beta/deviceManagement/managedDevices/{id}
     ?$select=hardwareInformation
 ```
 
-Requests laufen in Batches von 10 parallel. Bei 500 Geräten: ~50 Runden, Ladezeit 1–3 Minuten.
+Requests run in batches of 10 parallel. For 500 devices: ~50 rounds, loading time 1–3 minutes.
 
-**Warum Beta-Endpunkt?** `hardwareInformation.systemManagementBIOSVersion` ist nur im `/beta`-Endpunkt verfügbar.
+**Why the beta endpoint?** `hardwareInformation.systemManagementBIOSVersion` is only available in the `/beta` endpoint.
 
-**Warum OData Allowlist statt `ne`?** Der OData `ne`-Operator wird für Enum-Felder wie `managementAgent` von Graph nicht unterstützt:
+**Why OData allowlist instead of `ne`?** The OData `ne` operator is not supported for enum fields like `managementAgent`:
 
 ```
 $filter=... and (managementAgent eq 'mdm' or managementAgent eq 'easMdm'
@@ -303,124 +303,124 @@ $filter=... and (managementAgent eq 'mdm' or managementAgent eq 'easMdm'
   or managementAgent eq 'intuneAosp')
 ```
 
-### Fehlerbehebung Graph
+### Troubleshooting Graph
 
-| Problem | Ursache | Lösung |
+| Problem | Cause | Solution |
 |---|---|---|
-| Popup öffnet sich nicht / `popup_window_error` | Browser blockiert Popups | Popups für die Seite erlauben |
-| `AADSTS50011`: Redirect URI Mismatch | URI weicht vom Dateipfad ab | URI aus dem Tool kopieren, in Azure als SPA eintragen |
-| `Insufficient privileges` | Admin Consent fehlt | Als *delegiert* eintragen, Admin Consent erteilen |
-| MDE-Geräte noch sichtbar | Alter Cache | Abmelden und neu anmelden |
-| BIOS-Version überall leer | Intune nicht synchronisiert | Gerät synchronisieren, nach 15 Min. erneut versuchen |
-| Status zeigt überall `—` | Modellname nicht erkannt | CSV prüfen, Spalte *DB-Modell (abgeglichen)* analysieren |
-| Sehr lange Ladezeit | Viele Geräte | Normal — bei 1000+ Geräten 3–5 Min. einplanen |
+| Popup does not open / `popup_window_error` | Browser blocks popups | Allow popups for this page |
+| `AADSTS50011`: Redirect URI mismatch | URI differs from file path | Copy URI from tool, register in Azure as SPA |
+| `Insufficient privileges` | Admin consent missing | Add as *delegated*, grant admin consent |
+| MDE devices still visible | Stale cache | Sign out and sign in again |
+| BIOS version empty everywhere | Intune not synced | Sync device, retry after 15 minutes |
+| Status shows `—` everywhere | Model name not recognised | Check CSV export, analyse *DB model (matched)* column |
+| Very long loading time | Many devices | Expected — allow 3–5 min for 1000+ devices |
 
 ### Changelog Graph
 
 #### v2.0 — April 2026
-- Fünfte Summary-Kachel **UEFI Cert aktuell** (erscheint nach Secure Boot CSV-Import)
-- Secure Boot CSV-Import mit Drag & Drop nach dem Login
-- Neue Spalten: *Secure Boot aktiviert*, *Zertifikat-Status*; neuer Filter nach Zertifikat-Status
-- Fix: Login-Popup wurde nicht geöffnet wenn kein gecachter Account vorhanden war
+- Fifth summary tile **UEFI Cert up to date** (appears after Secure Boot CSV import)
+- Secure Boot CSV import with drag & drop after sign-in
+- New columns: *Secure Boot enabled*, *Certificate status*; new filter by certificate status
+- Fix: login popup was not opening when no cached account was present
 
 #### v1.9 — April 2026
-- MDE-Geräte per OData Allowlist serverseitig ausgeschlossen
+- MDE devices excluded server-side via OData allowlist
 
 #### v1.8 — April 2026
-- Windows-only Filter im Graph API Request
+- Windows-only filter in Graph API request
 
 #### v1.7 — April 2026
-- Fluides Layout, `table-layout: auto`, `auto-fit` Grids
+- Fluid layout, `table-layout: auto`, `auto-fit` grids
 
 #### v1.6 — April 2026
-- `extractBiosVersion()`: HP-Format `V70 ver. 01.10.00` → `01.10.00`; Rohwert-Tooltip
+- `extractBiosVersion()`: HP format `V70 ver. 01.10.00` → `01.10.00`; raw value tooltip
 
 #### v1.5 — April 2026
-- Dreistufiger Modellabgleich: Normalisierung → Substring → Fuzzy (Jaccard ≥ 60 %)
+- Three-stage model matching: normalisation → substring → fuzzy (Jaccard ≥ 60 %)
 
 #### v1.4 — April 2026
-- HP-Datenbank integriert (296 Modelle)
+- HP database integrated (296 models)
 
 #### v1.3 — April 2026
-- Dell-Datenbank integriert (~320 Modelle), Compliance-Spalten, numerischer Versionsvergleich
+- Dell database integrated (~320 models), compliance columns, numeric version comparison
 
 #### v1.0–1.2 — April 2026
-- Initiale Version: MSAL-Login, Graph-Abruf, Filter, Sortierung, CSV-Export, Dark Mode
-- Fix: `/beta`-Endpunkt; BIOS-Daten per Einzelabruf
+- Initial release: MSAL login, Graph fetch, filters, sorting, CSV export, dark mode
+- Fix: `/beta` endpoint; BIOS data via individual request
 
 ---
 
-## CSV-Variante
+## CSV variant
 
-Datei: `intune-bios-compliance-csv.html` · Version: **v1.1**
+File: `intune-bios-compliance-csv.html` · Version: **v1.1**
 
-### Voraussetzungen (CSV)
+### Requirements (CSV)
 
-- Moderner Browser (Chrome, Edge, Firefox, Safari)
-- Lesezugriff auf das Intune Admin Center (für CSV-Export)
-- Keine App-Registrierung, kein Admin Consent, kein Token erforderlich
+- Modern browser (Chrome, Edge, Firefox, Safari)
+- Read access to the Intune Admin Center (for CSV export)
+- No app registration, no admin consent, no token required
 
-### Geräte-CSV exportieren
+### Export the device CSV
 
-**Intune Admin Center → Geräte → Alle Geräte → Exportieren**
+**Intune Admin Center → Devices → All devices → Export**
 
-Der Export wird als ZIP bereitgestellt. Die enthaltene CSV direkt ins Tool laden.
+The export is provided as a ZIP file. Extract the CSV and load it directly into the tool.
 
-Das Tool liest folgende Spalten:
+The tool reads the following columns:
 
-| Spalte | Verwendung | Pflicht |
+| Column | Usage | Required |
 |---|---|---|
-| `Device name` | Gerätename (Join-Key für Secure Boot CSV) | ✅ Ja |
-| `Manufacturer` | Hersteller für BIOS-DB-Lookup | ✅ Ja |
-| `Model` | Modellname für BIOS-DB-Lookup | ✅ Ja |
-| `OS` | Filter: nur Windows-Geräte | ⚠️ Empfohlen |
-| `OS version` | Anzeige in Tabelle und Export | Nein |
-| `SystemManagementBIOSVersion` | Installierte BIOS-Version | Nein* |
-| `Managed by` | Filter: MDE-Geräte (`MDE`) werden ausgeschlossen | Nein |
+| `Device name` | Device name (join key for Secure Boot CSV) | ✅ Yes |
+| `Manufacturer` | Vendor for BIOS DB lookup | ✅ Yes |
+| `Model` | Model name for BIOS DB lookup | ✅ Yes |
+| `OS` | Filter: Windows devices only | ⚠️ Recommended |
+| `OS version` | Displayed in table and export | No |
+| `SystemManagementBIOSVersion` | Installed BIOS version | No* |
+| `Managed by` | Filter: MDE devices (`MDE`) are excluded | No |
 
-*Ohne BIOS-Version ist keine Compliance-Prüfung möglich.
+*Without a BIOS version, no compliance check is possible.
 
-> **Hardwareinventar muss aktiviert sein:** Die Spalte `SystemManagementBIOSVersion` ist nur befüllt wenn das Hardwareinventar für die Geräte in Intune aktiviert ist und die Geräte die Daten bereits gemeldet haben.
+> **Hardware inventory must be enabled:** The `SystemManagementBIOSVersion` column is only populated if hardware inventory is enabled for devices in Intune and the devices have already reported the data.
 
-### CSV importieren & Analyse starten
+### Import CSV & run analysis
 
-1. **Geräte-CSV** in die linke Drop-Zone laden (Drag & Drop oder Klick)
-2. **Secure Boot CSV** optional in die rechte Drop-Zone laden
-3. **Analyse starten** klicken → Tabelle und Kacheln erscheinen
-4. Mit **Zurücksetzen** alle Daten löschen und neu beginnen
+1. Load the **device CSV** into the left drop zone (drag & drop or click)
+2. Optionally load the **Secure Boot CSV** into the right drop zone
+3. Click **Run analysis** → table and tiles appear
+4. Use **Reset** to clear all data and start over
 
-Beide CSVs können in beliebiger Reihenfolge importiert werden. Wird die Secure Boot CSV nach der Analyse nachgeladen, aktualisiert sich die Tabelle automatisch.
+Both CSVs can be imported in any order. If the Secure Boot CSV is loaded after the analysis, the table updates automatically.
 
-### CSV-Parsing-Logik
+### CSV parsing logic
 
-Das Tool verwendet einen vollständigen RFC 4180-kompatiblen Parser. Beim Parsen werden automatisch gefiltert:
+The tool uses a fully RFC 4180-compliant parser. The following are automatically filtered during parsing:
 
-- **Nicht-Windows-Geräte** — Spalte `OS` ≠ `Windows` (case-insensitive)
-- **MDE-only Geräte** — Spalte `Managed by` = `MDE`
+- **Non-Windows devices** — column `OS` ≠ `Windows` (case-insensitive)
+- **MDE-only devices** — column `Managed by` = `MDE`
 
-Die Spalte `SystemManagementBIOSVersion` wird über eine Suche nach dem Schlüsselwort `bios` im Header erkannt — unabhängig von der genauen Gross-/Kleinschreibung.
+The `SystemManagementBIOSVersion` column is identified by searching for the keyword `bios` in the header — regardless of exact capitalisation.
 
-### Fehlerbehebung CSV
+### Troubleshooting CSV
 
-| Problem | Ursache | Lösung |
+| Problem | Cause | Solution |
 |---|---|---|
-| „Analyse starten" bleibt inaktiv | Geräte-CSV noch nicht importiert | Zuerst die Geräte-CSV laden |
-| „Erforderliche Spalten nicht gefunden" | Falsche CSV-Datei | CSV aus *Geräte → Alle Geräte → Exportieren* verwenden |
-| 0 Geräte nach Import | Alle gefiltert | `OS`- und `Managed by`-Spalten in der CSV prüfen |
-| BIOS-Version überall leer | Hardwareinventar nicht synchronisiert | Geräte in Intune synchronisieren, neuen Export erstellen |
-| Status zeigt überall `—` | Modellname nicht erkannt | Spalte *DB-Modell (abgeglichen)* im Export analysieren |
-| Secure Boot Spalten zeigen `—` | CSV nicht importiert oder Namensmismatch | Secure Boot CSV importieren; Gerätenamen vergleichen |
+| "Run analysis" stays inactive | Device CSV not yet imported | Load the device CSV first |
+| "Required columns not found" | Wrong CSV file | Use CSV from *Devices → All devices → Export* |
+| 0 devices after import | All filtered out | Check `OS` and `Managed by` columns in the CSV |
+| BIOS version empty everywhere | Hardware inventory not synced | Sync devices in Intune, create a new export |
+| Status shows `—` everywhere | Model name not recognised | Analyse *DB model (matched)* column in the export |
+| Secure Boot columns show `—` | CSV not imported or name mismatch | Import Secure Boot CSV; compare device names |
 
 ### Changelog CSV
 
 #### v1.1 — April 2026
-- MDE-Geräte werden anhand `Managed by = MDE` beim Parsen herausgefiltert
-- Drop-Zonen Layout überarbeitet: Texte und Kästen in separaten Zeilen
-- Diverse Syntaxfixes
+- MDE-only devices excluded during parsing based on `Managed by = MDE`
+- Drop zone layout revised: texts and drop zones in separate rows
+- Various syntax fixes
 
 #### v1.0 — April 2026
-- Initiale Version: vollständig CSV-basiert, kein Login erforderlich
-- Geräte-CSV Import (Intune Alle Geräte Export)
-- Secure Boot CSV Import (optional)
-- Komplette BIOS-Compliance-Engine, Tabelle, Filter, Sortierung, Summary-Kacheln, CSV-Export
-- Automatische Filterung von Nicht-Windows-Geräten
+- Initial release: fully CSV-based, no sign-in required
+- Device CSV import (Intune All Devices export)
+- Secure Boot CSV import (optional)
+- Complete BIOS compliance engine, table, filters, sorting, summary tiles, CSV export
+- Automatic filtering of non-Windows devices
