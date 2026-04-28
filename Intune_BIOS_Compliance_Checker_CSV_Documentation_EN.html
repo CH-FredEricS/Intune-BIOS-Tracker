@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intune BIOS Compliance Checker (CSV Mode) — Documentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+:root {
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#2d333b;
+  --border:#30363d;--border2:#444c56;
+  --text:#e6edf3;--muted:#7d8590;--dim:#545d68;
+  --accent:#58a6ff;
+  --green:#3fb950;--green-bg:#1a4a23;--green-border:#2ea043;
+  --red:#f85149;--red-bg:#4a1c1a;--red-border:#da3633;
+  --yellow:#d29922;--yellow-bg:#3d2e0a;
+  --orange:#e3b341;
+  --purple:#bc8cff;--purple-bg:rgba(188,140,255,.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;font-size:.95rem;}
+a{color:var(--accent);text-decoration:none;}
+a:hover{text-decoration:underline;}
+code,pre{font-family:'IBM Plex Mono',monospace;}
+.layout{display:flex;min-height:100vh;}
+.toc{width:268px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:28px 0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.content{flex:1;max-width:900px;padding:52px 60px;}
+.toc-logo{padding:0 24px 20px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.toc-logo-title{font-size:.85rem;font-weight:700;color:var(--text);line-height:1.3;}
+.toc-logo-sub{font-size:.72rem;color:var(--muted);margin-top:2px;}
+.toc-group-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);padding:10px 24px 4px;}
+.toc-item{display:block;padding:5px 24px;font-size:.82rem;color:var(--muted);border-left:2px solid transparent;transition:all .15s;}
+.toc-item:hover{color:var(--accent);border-color:var(--accent);background:rgba(88,166,255,.05);text-decoration:none;}
+.toc-item.active{color:var(--accent);border-color:var(--accent);background:rgba(88,166,255,.07);}
+.toc-item.sub{padding-left:38px;font-size:.79rem;}
+.toc-divider{height:1px;background:var(--border);margin:12px 24px;}
+h1{font-size:1.9rem;font-weight:700;letter-spacing:-.02em;line-height:1.25;margin-bottom:.5rem;}
+h2{font-size:1.25rem;font-weight:600;margin:3rem 0 1rem;padding-bottom:.6rem;border-bottom:1px solid var(--border);}
+h3{font-size:1rem;font-weight:600;margin:2rem 0 .6rem;color:var(--text);}
+h4{font-size:.9rem;font-weight:600;margin:1.5rem 0 .4rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+p{margin-bottom:1rem;color:#c9d1d9;}
+ul,ol{margin:.5rem 0 1rem 1.4rem;}
+li{margin-bottom:.3rem;color:#c9d1d9;}
+strong{color:var(--text);font-weight:600;}
+.intro{border-left:3px solid var(--accent);padding:.8rem 1.2rem;background:rgba(88,166,255,.06);border-radius:0 6px 6px 0;margin-bottom:2rem;}
+.intro p{margin:0;}
+.badge{display:inline-block;font-size:.72rem;font-weight:600;padding:2px 9px;border-radius:99px;margin-right:4px;vertical-align:middle;}
+.badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+.badge-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.badge-yellow{background:var(--yellow-bg);color:var(--yellow);border:1px solid #5a4106;}
+.badge-blue{background:rgba(88,166,255,.1);color:var(--accent);border:1px solid rgba(88,166,255,.3);}
+.badge-gray{background:var(--bg3);color:var(--muted);border:1px solid var(--border2);}
+.version-pill{font-size:.75rem;font-weight:600;background:rgba(88,166,255,.12);color:var(--accent);border:1px solid rgba(88,166,255,.3);border-radius:99px;padding:2px 10px;margin-left:10px;vertical-align:middle;}
+code{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:.85em;color:#ffa657;}
+pre{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.4rem;overflow-x:auto;margin:1rem 0 1.5rem;font-size:.82rem;line-height:1.65;}
+pre code{background:none;border:none;padding:0;font-size:inherit;color:#c9d1d9;}
+.callout{border-radius:8px;padding:.9rem 1.2rem;margin:1.2rem 0;display:flex;gap:.7rem;align-items:flex-start;}
+.callout-icon{flex-shrink:0;font-size:1rem;margin-top:.1rem;}
+.callout-body p{margin:0;font-size:.9rem;}
+.callout-body strong{display:block;margin-bottom:.2rem;}
+.callout.info{background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.25);}
+.callout.warning{background:var(--yellow-bg);border:1px solid #5a4106;}
+.callout.success{background:var(--green-bg);border:1px solid var(--green-border);}
+.callout.danger{background:var(--red-bg);border:1px solid var(--red-border);}
+table{width:100%;border-collapse:collapse;font-size:.88rem;margin:1rem 0 1.5rem;}
+th{background:var(--bg3);color:var(--muted);font-weight:600;text-align:left;padding:8px 12px;border:1px solid var(--border);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;}
+td{padding:9px 12px;border:1px solid var(--border);color:#c9d1d9;vertical-align:top;}
+tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.steps{counter-reset:step;}
+.step{display:flex;gap:1.2rem;margin-bottom:1.5rem;}
+.step-num{flex-shrink:0;width:28px;height:28px;background:rgba(88,166,255,.15);border:1px solid rgba(88,166,255,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--accent);margin-top:.15rem;}
+.step-body h4{margin:0 0 .3rem;font-size:.9rem;color:var(--text);text-transform:none;letter-spacing:0;}
+.step-body p{margin:0;font-size:.9rem;}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:1rem 0 1.5rem;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;}
+.stat-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;}
+.stat-value{font-size:1.5rem;font-weight:700;}
+.stat-value.green{color:var(--green);}
+.stat-value.red{color:var(--red);}
+.stat-value.yellow{color:var(--yellow);}
+.stat-value.blue{color:var(--accent);}
+.changelog-entry{border-left:2px solid var(--border2);padding:.6rem 0 .6rem 1.2rem;margin-bottom:.8rem;}
+.changelog-version{font-weight:700;color:var(--text);font-size:.9rem;}
+.changelog-date{font-size:.78rem;color:var(--muted);margin-left:.5rem;}
+.changelog-entry ul{margin:.4rem 0 0 1rem;}
+.changelog-entry li{font-size:.87rem;margin-bottom:.15rem;}
+hr{border:none;border-top:1px solid var(--border);margin:2.5rem 0;}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <div class="toc-logo">
+    <div class="toc-logo-title">BIOS Compliance Checker</div>
+    <div class="toc-logo-sub">CSV Mode &middot; Documentation v1.1</div>
+  </div>
+
+  <div class="toc-group-label">Overview</div>
+  <a class="toc-item" href="#overview">What is this tool?</a>
+  <a class="toc-item" href="#comparison">Comparison: CSV vs. Graph</a>
+  <a class="toc-item" href="#requirements">Requirements</a>
+
+  <div class="toc-divider"></div>
+  <div class="toc-group-label">CSV Exports</div>
+  <a class="toc-item" href="#device-csv">Export the device CSV</a>
+  <a class="toc-item sub" href="#device-csv-columns">Relevant columns</a>
+  <a class="toc-item" href="#secureboot-csv">Export the Secure Boot CSV</a>
+
+  <div class="toc-divider"></div>
+  <div class="toc-group-label">Usage</div>
+  <a class="toc-item" href="#import">CSV import</a>
+  <a class="toc-item" href="#analysis">Run analysis</a>
+  <a class="toc-item" href="#summary">Summary tiles</a>
+  <a class="toc-item" href="#filters">Filters &amp; sorting</a>
+  <a class="toc-item" href="#export">CSV export</a>
+
+  <div class="toc-divider"></div>
+  <div class="toc-group-label">Reference</div>
+  <a class="toc-item" href="#parsing">CSV parsing logic</a>
+  <a class="toc-item" href="#compliance-check">BIOS compliance check</a>
+  <a class="toc-item sub" href="#version-matching">Version comparison</a>
+  <a class="toc-item sub" href="#model-matching">Model matching</a>
+  <a class="toc-item sub" href="#bios-extraction">BIOS extraction</a>
+  <a class="toc-item" href="#bios-db">BIOS database</a>
+  <a class="toc-item" href="#status-codes">Status codes</a>
+  <a class="toc-item" href="#troubleshooting">Troubleshooting</a>
+
+  <div class="toc-divider"></div>
+  <a class="toc-item" href="#changelog">Changelog</a>
+</nav>
+
+<main class="content">
+
+  <h1>BIOS Compliance Checker <span class="version-pill">CSV Mode v1.1</span></h1>
+
+  <div class="intro">
+    <p>A login-free, fully CSV-based variant of the Intune BIOS Compliance Checker. Instead of fetching data live via the Microsoft Graph API, two CSV exports from the Intune Admin Center are imported. No Azure AD, no app registration, no token — the browser processes everything locally.</p>
+  </div>
+
+  <h2 id="overview">What is this tool?</h2>
+  <p>The tool checks Windows devices from Intune for BIOS compliance with respect to the <strong>Windows Secure Boot 2023 certificate update</strong> (expiring June 2026). It compares the installed BIOS version against the minimum versions published by Dell and HP.</p>
+  <p>Unlike the Graph-based variant, this tool requires <strong>no sign-in and no Azure AD app registration</strong>. Device data is instead loaded from a CSV export from the Intune Admin Center.</p>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="stat-label">Supported vendors</div><div class="stat-value blue">3</div></div>
+    <div class="stat-card"><div class="stat-label">Dell models in DB</div><div class="stat-value blue">~320</div></div>
+    <div class="stat-card"><div class="stat-label">HP models in DB</div><div class="stat-value blue">296</div></div>
+    <div class="stat-card"><div class="stat-label">Lenovo models in DB</div><div class="stat-value yellow">pending</div></div>
+  </div>
+
+  <div class="callout info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body"><p>All data is processed exclusively in the browser. No data is transmitted anywhere. The tool works completely offline — once the HTML file is loaded, no internet connection is required (except for Google Fonts used in the design).</p></div>
+  </div>
+
+  <h2 id="comparison">Comparison: CSV mode vs. Graph mode</h2>
+  <table>
+    <tr><th>Feature</th><th>CSV mode</th><th>Graph mode</th></tr>
+    <tr><td>Sign-in required</td><td><span class="badge badge-green">No</span></td><td><span class="badge badge-yellow">Yes (Azure AD)</span></td></tr>
+    <tr><td>App registration</td><td><span class="badge badge-green">Not needed</span></td><td><span class="badge badge-yellow">Required</span></td></tr>
+    <tr><td>Data retrieval</td><td>CSV import (manual)</td><td>Live via Graph API</td></tr>
+    <tr><td>Data freshness</td><td>As of the CSV export date</td><td>Real-time</td></tr>
+    <tr><td>Loading time</td><td><span class="badge badge-green">Instant</span></td><td>1–3 min (API requests)</td></tr>
+    <tr><td>Usable without IT permissions</td><td><span class="badge badge-green">Yes</span></td><td>Limited</td></tr>
+    <tr><td>Automatable</td><td>Manual only</td><td>Yes (API)</td></tr>
+    <tr><td>BIOS compliance check</td><td><span class="badge badge-green">Identical</span></td><td><span class="badge badge-green">Identical</span></td></tr>
+    <tr><td>Secure Boot CSV import</td><td><span class="badge badge-green">Yes</span></td><td><span class="badge badge-green">Yes</span></td></tr>
+  </table>
+
+  <h2 id="requirements">Requirements</h2>
+  <ul>
+    <li>Modern browser (Chrome, Edge, Firefox, Safari)</li>
+    <li>Read access to the Intune Admin Center (for the CSV export)</li>
+    <li>No app registration, no admin consent, no token required</li>
+  </ul>
+
+  <h2 id="device-csv">Export the device CSV</h2>
+  <p>The CSV export is done in the Intune Admin Center:</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Open Intune Admin Center</h4>
+        <p>Navigate to <a href="https://intune.microsoft.com">intune.microsoft.com</a> &rarr; <strong>Devices</strong> &rarr; <strong>All devices</strong>.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Start the export</h4>
+        <p>Click <strong>Export</strong> (top right of the device list). Intune generates a full export of all devices including hardware inventory data.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Download the CSV</h4>
+        <p>The export is provided as a ZIP file. Extract the CSV file and load it directly into the tool.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout warning">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body"><strong>Hardware inventory must be enabled</strong><p>The <code>SystemManagementBIOSVersion</code> column is only populated if hardware inventory is enabled for devices in Intune and the devices have already reported the data. Devices without a BIOS value are shown as <span class="badge badge-gray">not checked</span>.</p></div>
+  </div>
+
+  <h3 id="device-csv-columns">Relevant columns</h3>
+  <p>The tool reads the following columns from the device CSV:</p>
+  <table>
+    <tr><th>Column</th><th>Usage</th><th>Required</th></tr>
+    <tr><td><code>Device name</code></td><td>Device name (join key for Secure Boot CSV)</td><td><span class="badge badge-red">Yes</span></td></tr>
+    <tr><td><code>Manufacturer</code></td><td>Vendor for BIOS DB lookup</td><td><span class="badge badge-red">Yes</span></td></tr>
+    <tr><td><code>Model</code></td><td>Model name for BIOS DB lookup</td><td><span class="badge badge-red">Yes</span></td></tr>
+    <tr><td><code>OS</code></td><td>Filter: Windows devices only</td><td><span class="badge badge-yellow">Recommended</span></td></tr>
+    <tr><td><code>OS version</code></td><td>Displayed in table and CSV export</td><td><span class="badge badge-gray">No</span></td></tr>
+    <tr><td><code>SystemManagementBIOSVersion</code></td><td>Installed BIOS version</td><td><span class="badge badge-gray">No*</span></td></tr>
+    <tr><td><code>Managed by</code></td><td>Filter: MDE-only devices (<code>MDE</code>) are excluded</td><td><span class="badge badge-gray">No</span></td></tr>
+  </table>
+  <p style="font-size:12px;color:var(--muted);">* Without a BIOS version, no compliance check is possible — devices are shown as <em>not checked</em>.</p>
+
+  <h2 id="secureboot-csv">Export the Secure Boot CSV</h2>
+  <p>Optionally, a second CSV export from Intune Reporting can be imported, containing Secure Boot status and certificate status:</p>
+  <p><strong>Intune Admin Center</strong> &rarr; <strong>Reports</strong> &rarr; <strong>Windows Autopatch</strong> &rarr; <strong>Windows quality updates</strong> &rarr; <strong>Reports</strong> &rarr; <strong>Secure Boot status</strong> &rarr; <strong>Export</strong></p>
+  <p>The tool automatically joins the data by device name (case-insensitive). The Secure Boot and certificate columns remain empty (<code>—</code>) until a CSV is imported.</p>
+
+  <h2 id="import">CSV import</h2>
+  <p>The tool provides two drop zones side by side:</p>
+  <ul>
+    <li><strong>Device CSV</strong> (required) — drag &amp; drop or click to browse</li>
+    <li><strong>Secure Boot Status CSV</strong> (optional) — drag &amp; drop or click to browse</li>
+  </ul>
+  <p>Both CSVs can be imported in any order. If the Secure Boot CSV is loaded after the analysis has already started, the table updates automatically.</p>
+
+  <div class="callout info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body"><p>The tool automatically filters during parsing: non-Windows devices (column <code>OS</code> &ne; <code>Windows</code>) and MDE-only devices (column <code>Managed by</code> = <code>MDE</code>) are excluded.</p></div>
+  </div>
+
+  <h2 id="analysis">Run analysis</h2>
+  <p>Once the device CSV has been imported, the <strong>Run analysis</strong> button becomes active. Clicking it:</p>
+  <ol>
+    <li>Populates the dropdown filters with available manufacturers and models</li>
+    <li>Runs the BIOS compliance check for all devices</li>
+    <li>Displays the results table and summary tiles</li>
+    <li>Automatically scrolls to the results</li>
+  </ol>
+  <p>Use <strong>Reset</strong> to clear all imported data and return the tool to its initial state.</p>
+
+  <h2 id="summary">Summary tiles</h2>
+  <p>Above the table the tool displays up to five tiles:</p>
+  <table>
+    <tr><th>Tile</th><th>Content</th><th>Visible</th></tr>
+    <tr><td>Total devices</td><td>Number of Windows devices loaded (after filtering)</td><td>Always</td></tr>
+    <tr><td>BIOS up to date</td><td>Devices with BIOS version &ge; minimum version</td><td>Always</td></tr>
+    <tr><td>Update required</td><td>Devices with BIOS version &lt; minimum version</td><td>Always</td></tr>
+    <tr><td>Not checked</td><td>Devices without a DB entry or without a BIOS version</td><td>Always</td></tr>
+    <tr><td><strong>UEFI Cert up to date</strong></td><td>Devices with <code>Certificate status = Up to date</code> from the Secure Boot CSV</td><td>After Secure Boot CSV import only</td></tr>
+  </table>
+
+  <h2 id="filters">Filters &amp; sorting</h2>
+  <table>
+    <tr><th>Filter</th><th>Description</th></tr>
+    <tr><td>Free text search</td><td>Searches device name, model, BIOS version and OS</td></tr>
+    <tr><td>Manufacturer</td><td>Dropdown of all present manufacturer values</td></tr>
+    <tr><td>Model</td><td>Dropdown of all present model values</td></tr>
+    <tr><td>BIOS status</td><td>Up to date / Update required / Not checked</td></tr>
+    <tr><td>Certificate status</td><td>Up to date / Not up to date / Not applicable / Unknown</td></tr>
+  </table>
+  <p>All columns are sortable by clicking the column header. Version fields are sorted numerically. The default sort shows <span class="badge badge-red">Update required</span> devices first.</p>
+
+  <h2 id="export">CSV export</h2>
+  <p>The <strong>Export CSV</strong> button saves the currently filtered view as a CSV file:</p>
+  <table>
+    <tr><th>Column</th><th>Content</th></tr>
+    <tr><td>Device name</td><td>From the imported device CSV</td></tr>
+    <tr><td>Manufacturer</td><td>From the imported device CSV</td></tr>
+    <tr><td>Model</td><td>From the imported device CSV</td></tr>
+    <tr><td>Current BIOS</td><td>Extracted numeric BIOS version</td></tr>
+    <tr><td>Current BIOS (raw)</td><td>Raw value from the device CSV (e.g. <code>V70 Ver. 01.10.00</code>)</td></tr>
+    <tr><td>Minimum BIOS</td><td>Minimum version from the vendor database</td></tr>
+    <tr><td>DB model (matched)</td><td>DB entry actually used for the match</td></tr>
+    <tr><td>BIOS status</td><td>Up to date / Update required / —</td></tr>
+    <tr><td>Secure Boot enabled</td><td>Value from Secure Boot CSV (empty if not imported)</td></tr>
+    <tr><td>Certificate status</td><td>Value from Secure Boot CSV (empty if not imported)</td></tr>
+    <tr><td>Operating system</td><td>From the imported device CSV</td></tr>
+    <tr><td>OS version</td><td>From the imported device CSV</td></tr>
+  </table>
+  <p>The file is exported as UTF-8 with BOM and opens correctly in Excel.</p>
+
+  <h2 id="parsing">CSV parsing logic</h2>
+
+  <h3>Device CSV</h3>
+  <p>The tool uses a fully RFC 4180-compliant CSV parser that handles quoted fields, embedded commas and line breaks within fields. The following are automatically filtered during parsing:</p>
+  <ul>
+    <li><strong>Non-Windows devices</strong> — column <code>OS</code> must contain <code>Windows</code> (case-insensitive)</li>
+    <li><strong>MDE-only devices</strong> — column <code>Managed by</code> = <code>MDE</code> are excluded</li>
+  </ul>
+  <p>The <code>SystemManagementBIOSVersion</code> column is identified by searching for the keyword <code>bios</code> in the header — regardless of exact capitalisation.</p>
+
+  <h3>Secure Boot CSV</h3>
+  <p>The Secure Boot CSV is also parsed RFC 4180-compliant. The join with device data is performed using the device name (column <code>Device name</code>) as the join key, case-insensitively. Expected columns:</p>
+  <ul>
+    <li><code>Device name</code> — join key</li>
+    <li><code>Secure Boot enabled</code> — Yes / No / Unknown</li>
+    <li><code>Certificate status</code> — Up to date / Not up to date / Not applicable</li>
+  </ul>
+
+  <h2 id="compliance-check">BIOS compliance check</h2>
+
+  <h3 id="version-matching">Version comparison</h3>
+  <p>The installed BIOS version is compared against the minimum version using numeric segment-by-segment comparison — not alphabetically:</p>
+  <pre><code>compareVersions("01.10.00", "01.09.00")  →  1  (current >= minimum ✓)
+compareVersions("1.8.0",    "1.10.0")    → -1  (outdated ✗)
+compareVersions("1.10.0",   "1.10.0")   →  0  (exact match ✓)</code></pre>
+
+  <h3 id="model-matching">Model matching (normalisation + fuzzy)</h3>
+  <p>Intune often returns verbose model names. The matching runs in three stages:</p>
+  <table>
+    <tr><th>Stage</th><th>Method</th><th>Example</th></tr>
+    <tr>
+      <td><span class="badge badge-blue">1</span> Normalisation</td>
+      <td>Strip noise words (<code>Notebook PC</code>, <code>Inch</code>, <code>Laptop PC</code>, …)</td>
+      <td><code>HP EliteBook 860 16 inch G10 Notebook PC</code> &rarr; <code>hp elitebook 860 16 g10</code></td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-blue">2</span> Substring</td>
+      <td>Normalised DB key is contained in the Intune name (or vice versa)</td>
+      <td><code>hp elitebook 840 g8</code> &sub; <code>hp elitebook 840 g8 special</code></td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-blue">3</span> Fuzzy (Jaccard)</td>
+      <td>Word-set similarity &ge; 60 %</td>
+      <td><code>hp elitebook 840-g8</code> &harr; <code>hp elitebook 840 g8</code></td>
+    </tr>
+  </table>
+  <p>A tooltip on the minimum version cell shows which DB entry was used for the match.</p>
+
+  <h3 id="bios-extraction">BIOS version extraction</h3>
+  <p>HP returns BIOS versions with the BIOS family as a prefix. The tool extracts the numeric version automatically:</p>
+  <pre><code>"V70 ver. 01.10.00"  →  "01.10.00"
+"T76 Ver. 01.22.00"  →  "01.22.00"
+"01.10.00"           →  "01.10.00"   (unchanged)
+"1.32.1"             →  "1.32.1"     (unchanged)</code></pre>
+  <p>The original raw value is exported as a separate column in the CSV and shown as a tooltip on the BIOS cell.</p>
+
+  <h2 id="bios-db">BIOS database</h2>
+  <p>Identical to the Graph-based variant — the database is embedded directly in the HTML file:</p>
+  <table>
+    <tr><th>Vendor</th><th>Source</th><th>As of</th></tr>
+    <tr><td>Dell</td><td><a href="https://www.dell.com/support/kbdoc/en-us/000347876">KB000347876</a></td><td>February 2026</td></tr>
+    <tr><td>HP</td><td><a href="https://support.hp.com/us-en/document/ish_13070353-13070429-16">HP Support</a></td><td>2025/2026</td></tr>
+    <tr><td>Lenovo</td><td><a href="https://support.lenovo.com/us/en/solutions/ht518129">HT518129</a></td><td>pending</td></tr>
+  </table>
+  <div class="callout warning">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body"><strong>Database updates</strong><p>Vendors update their lists continuously. The database in the tool reflects the state at the time of creation. For critical compliance decisions, consult the source articles directly.</p></div>
+  </div>
+
+  <h2 id="status-codes">Status codes</h2>
+
+  <h3>BIOS status</h3>
+  <table>
+    <tr><th>Status</th><th>Meaning</th></tr>
+    <tr>
+      <td><span class="badge badge-green">Up to date</span></td>
+      <td>Installed BIOS version &ge; minimum version. The device meets the prerequisite for the Secure Boot 2023 certificate update.</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-red">Update required</span></td>
+      <td>Installed BIOS version &lt; minimum version. A BIOS update is required.</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-gray">—</span></td>
+      <td>No entry in the database or no BIOS version in the CSV. Manual review recommended.</td>
+    </tr>
+  </table>
+
+  <h3>Secure Boot status (from Secure Boot CSV)</h3>
+  <table>
+    <tr><th>Status</th><th>Meaning</th></tr>
+    <tr><td><span class="badge badge-green">Yes</span></td><td>Secure Boot is enabled.</td></tr>
+    <tr><td><span class="badge badge-red">No</span></td><td>Secure Boot is disabled.</td></tr>
+    <tr><td><span class="badge badge-gray">Unknown / —</span></td><td>No data available or Secure Boot CSV not imported.</td></tr>
+  </table>
+
+  <h3>Certificate status (from Secure Boot CSV)</h3>
+  <table>
+    <tr><th>Status</th><th>Meaning</th></tr>
+    <tr><td><span class="badge badge-green">Up to date</span></td><td>Secure Boot 2023 certificates are installed. No action required.</td></tr>
+    <tr><td><span class="badge badge-red">Not up to date</span></td><td>2011 certificates still active. BIOS update + Windows Update required.</td></tr>
+    <tr><td><span class="badge badge-gray">N/A / —</span></td><td>Not applicable or Secure Boot CSV not imported.</td></tr>
+  </table>
+
+  <h2 id="troubleshooting">Troubleshooting</h2>
+  <table>
+    <tr><th>Problem</th><th>Cause</th><th>Solution</th></tr>
+    <tr>
+      <td>"Run analysis" button stays inactive</td>
+      <td>Device CSV not yet imported</td>
+      <td>Load the device CSV first — the Secure Boot CSV is optional</td>
+    </tr>
+    <tr>
+      <td>Error: "Required columns not found"</td>
+      <td>Wrong CSV file imported</td>
+      <td>Make sure the device CSV comes from <em>Devices &rarr; All devices &rarr; Export</em></td>
+    </tr>
+    <tr>
+      <td>0 devices after import</td>
+      <td>All devices were filtered out</td>
+      <td>CSV may contain only non-Windows or MDE devices — check <code>OS</code> and <code>Managed by</code> columns</td>
+    </tr>
+    <tr>
+      <td>BIOS version empty everywhere</td>
+      <td>Hardware inventory not synced in Intune</td>
+      <td>Sync devices in Intune and create a new CSV export</td>
+    </tr>
+    <tr>
+      <td>Status shows <span class="badge badge-gray">—</span> everywhere</td>
+      <td>Model name not recognised</td>
+      <td>Check the CSV export, analyse the <em>DB model (matched)</em> column; add an entry to <code>BIOS_DB</code> if needed</td>
+    </tr>
+    <tr>
+      <td>Secure Boot columns show <code>—</code></td>
+      <td>Secure Boot CSV not imported or device name mismatch</td>
+      <td>Import the Secure Boot CSV; compare device names in both CSVs</td>
+    </tr>
+    <tr>
+      <td>CSV import error for Secure Boot CSV</td>
+      <td>Wrong CSV file</td>
+      <td>Use only the Secure Boot Status CSV export from <em>Reports &rarr; Windows Autopatch &rarr; Secure Boot status</em></td>
+    </tr>
+  </table>
+
+  <h2 id="changelog">Changelog</h2>
+
+  <div class="changelog-entry">
+    <span class="changelog-version">v1.1</span><span class="changelog-date">April 2026</span>
+    <ul>
+      <li>MDE-only devices are now excluded during parsing based on the <code>Managed by = MDE</code> column</li>
+      <li>Drop zone layout revised: description texts and drop zones in separate rows for consistent height</li>
+      <li>Various syntax fixes (line breaks in JS string literals)</li>
+    </ul>
+  </div>
+  <div class="changelog-entry">
+    <span class="changelog-version">v1.0</span><span class="changelog-date">April 2026</span>
+    <ul>
+      <li>Initial release: fully CSV-based, no sign-in required</li>
+      <li>Device CSV import (Intune All Devices export)</li>
+      <li>Secure Boot CSV import (optional, identical to Graph variant)</li>
+      <li>Complete BIOS compliance engine (database, normalisation, fuzzy match, HP extraction)</li>
+      <li>Identical table, filters, sorting, summary tiles and CSV export as Graph variant</li>
+      <li>Automatic filtering of non-Windows devices</li>
+    </ul>
+  </div>
+
+</main>
+</div>
+
+<script>
+const sections = document.querySelectorAll('h2[id], h3[id]');
+const tocItems  = document.querySelectorAll('.toc-item');
+const observer  = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      tocItems.forEach(t => t.classList.remove('active'));
+      const active = document.querySelector('.toc-item[href="#' + e.target.id + '"]');
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
