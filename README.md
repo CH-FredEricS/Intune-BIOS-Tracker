@@ -1,6 +1,6 @@
 # Intune BIOS Compliance Checker — Complete Documentation
 
-**Graph variant v2.0 · CSV variant v1.5**
+**Graph variant v2.3 · CSV variant v1.8**
 
 Documentation for both variants of the Intune BIOS Compliance Checker, including a comparison, shared features, and variant-specific details.
 
@@ -41,9 +41,9 @@ The Microsoft Secure Boot certificates issued in 2011 begin expiring in June 202
 
 Both variants of the tool compare the installed BIOS version against the minimum versions published by Dell and HP. They differ only in how device data is retrieved.
 
-| Supported vendors | Dell models | HP models | Lenovo models |
+| Supported vendors | Dell models | HP models | Lenovo models | Microsoft models |
 |---|---|---|---|
-| 3 | ~320 | 296 | pending |
+| 4 | 457 | 305 | 630 | 35 |
 
 > **Privacy:** Both tools run entirely in the browser. No data is transmitted to external servers.
 
@@ -54,7 +54,7 @@ Both variants of the tool compare the installed BIOS version against the minimum
 | Feature | Graph variant | CSV variant |
 |---|---|---|
 | **File** | `intune-device-overview.html` | `intune-bios-compliance-csv.html` |
-| **Version** | v2.0 | v1.5 |
+| **Version** | v2.3 | v1.8 |
 | Sign-in required | ✅ Azure AD | ❌ Not required |
 | App registration | ✅ Required | ❌ Not required |
 | Admin consent | ✅ Required | ❌ Not required |
@@ -193,9 +193,10 @@ The minimum versions are embedded directly in the HTML file — identical in bot
 
 | Vendor | Source | As of |
 |---|---|---|
-| Dell | [KB000347876](https://www.dell.com/support/kbdoc/en-us/000347876) | February 2026 |
-| HP | [HP Support](https://support.hp.com/us-en/document/ish_13070353-13070429-16) | 2025/2026 |
-| Lenovo | [HT518129](https://support.lenovo.com/us/en/solutions/ht518129) | pending |
+| Dell | [KB000347876](https://www.dell.com/support/kbdoc/en-us/000347876) | April 2026 |
+| HP | [HP Support](https://support.hp.com/us-en/document/ish_13070353-13070429-16) | April 2026 |
+| Lenovo | [HT518129](https://support.lenovo.com/us/en/solutions/ht518129) | April 2026 |
+| Microsoft | [Surface Support](https://support.microsoft.com/en-us/surface/drivers-firmware/surface-secure-boot-certificates) | April 2026 |
 
 > Vendors update their lists continuously. For critical compliance decisions, consult the source articles directly.
 
@@ -231,7 +232,7 @@ The minimum versions are embedded directly in the HTML file — identical in bot
 
 ## Graph variant
 
-File: `intune-device-overview.html` · Version: **v2.0**
+File: `intune-device-overview.html` · Version: **v2.3**
 
 ### Requirements (Graph)
 
@@ -317,6 +318,14 @@ $filter=... and (managementAgent eq 'mdm' or managementAgent eq 'easMdm'
 
 ### Changelog Graph
 
+#### v2.3 — April 2026
+- BIOS database: **Microsoft/Surface** added (35 models, `any` and `End of Life` logic)
+- BIOS database: **Lenovo** added (630 entries — ThinkPad, ThinkCentre, ThinkStation, ThinkBook)
+- BIOS database: **Dell** expanded to 457 entries
+- BIOS database: **HP** expanded to 305 entries
+- New status **End of Life**: badge, filter option and CSV column
+- New status **Factory default**: Surface devices shipped with the 2023 CA pre-installed
+
 #### v2.0 — April 2026
 - Fifth summary tile **UEFI Cert up to date** (appears after Secure Boot CSV import)
 - Secure Boot CSV import with drag & drop after sign-in
@@ -352,7 +361,7 @@ $filter=... and (managementAgent eq 'mdm' or managementAgent eq 'easMdm'
 
 ## CSV variant
 
-File: `intune-bios-compliance-csv.html` · Version: **v1.5**
+File: `intune-bios-compliance-csv.html` · Version: **v1.8**
 
 ### Requirements (CSV)
 
@@ -413,7 +422,7 @@ The `SystemManagementBIOSVersion` column is identified by searching for the keyw
 
 ### Changelog CSV
 
-#### v1.5 — April 2026
+#### v1.8 — April 2026
 - MDE-only devices excluded during parsing based on `Managed by = MDE`
 - Drop zone layout revised: texts and drop zones in separate rows
 - Various syntax fixes
