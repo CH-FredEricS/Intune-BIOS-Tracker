@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intune BIOS Compliance Checker (CSV-Modus) — Dokumentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+:root {
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#2d333b;
+  --border:#30363d;--border2:#444c56;
+  --text:#e6edf3;--muted:#7d8590;--dim:#545d68;
+  --accent:#58a6ff;
+  --green:#3fb950;--green-bg:#1a4a23;--green-border:#2ea043;
+  --red:#f85149;--red-bg:#4a1c1a;--red-border:#da3633;
+  --yellow:#d29922;--yellow-bg:#3d2e0a;
+  --orange:#e3b341;
+  --purple:#bc8cff;--purple-bg:rgba(188,140,255,.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;font-size:.95rem;}
+a{color:var(--accent);text-decoration:none;}
+a:hover{text-decoration:underline;}
+code,pre{font-family:'IBM Plex Mono',monospace;}
+.layout{display:flex;min-height:100vh;}
+.toc{width:268px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:28px 0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.content{flex:1;max-width:900px;padding:52px 60px;}
+.toc-logo{padding:0 24px 20px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.toc-logo-title{font-size:.85rem;font-weight:700;color:var(--text);line-height:1.3;}
+.toc-logo-sub{font-size:.72rem;color:var(--muted);margin-top:2px;}
+.toc-group-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);padding:10px 24px 4px;}
+.toc-item{display:block;padding:5px 24px;font-size:.82rem;color:var(--muted);border-left:2px solid transparent;transition:all .15s;}
+.toc-item:hover{color:var(--accent);border-color:var(--accent);background:rgba(88,166,255,.05);text-decoration:none;}
+.toc-item.active{color:var(--accent);border-color:var(--accent);background:rgba(88,166,255,.07);}
+.toc-item.sub{padding-left:38px;font-size:.79rem;}
+.toc-divider{height:1px;background:var(--border);margin:12px 24px;}
+h1{font-size:1.9rem;font-weight:700;letter-spacing:-.02em;line-height:1.25;margin-bottom:.5rem;}
+h2{font-size:1.25rem;font-weight:600;margin:3rem 0 1rem;padding-bottom:.6rem;border-bottom:1px solid var(--border);}
+h3{font-size:1rem;font-weight:600;margin:2rem 0 .6rem;color:var(--text);}
+h4{font-size:.9rem;font-weight:600;margin:1.5rem 0 .4rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+p{margin-bottom:1rem;color:#c9d1d9;}
+ul,ol{margin:.5rem 0 1rem 1.4rem;}
+li{margin-bottom:.3rem;color:#c9d1d9;}
+strong{color:var(--text);font-weight:600;}
+.intro{border-left:3px solid var(--accent);padding:.8rem 1.2rem;background:rgba(88,166,255,.06);border-radius:0 6px 6px 0;margin-bottom:2rem;}
+.intro p{margin:0;}
+.badge{display:inline-block;font-size:.72rem;font-weight:600;padding:2px 9px;border-radius:99px;margin-right:4px;vertical-align:middle;}
+.badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+.badge-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.badge-yellow{background:var(--yellow-bg);color:var(--yellow);border:1px solid #5a4106;}
+.badge-blue{background:rgba(88,166,255,.1);color:var(--accent);border:1px solid rgba(88,166,255,.3);}
+.badge-gray{background:var(--bg3);color:var(--muted);border:1px solid var(--border2);}
+.version-pill{font-size:.75rem;font-weight:600;background:rgba(88,166,255,.12);color:var(--accent);border:1px solid rgba(88,166,255,.3);border-radius:99px;padding:2px 10px;margin-left:10px;vertical-align:middle;}
+code{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:.85em;color:#ffa657;}
+pre{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.4rem;overflow-x:auto;margin:1rem 0 1.5rem;font-size:.82rem;line-height:1.65;}
+pre code{background:none;border:none;padding:0;font-size:inherit;color:#c9d1d9;}
+.callout{border-radius:8px;padding:.9rem 1.2rem;margin:1.2rem 0;display:flex;gap:.7rem;align-items:flex-start;}
+.callout-icon{flex-shrink:0;font-size:1rem;margin-top:.1rem;}
+.callout-body p{margin:0;font-size:.9rem;}
+.callout-body strong{display:block;margin-bottom:.2rem;}
+.callout.info{background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.25);}
+.callout.warning{background:var(--yellow-bg);border:1px solid #5a4106;}
+.callout.success{background:var(--green-bg);border:1px solid var(--green-border);}
+.callout.danger{background:var(--red-bg);border:1px solid var(--red-border);}
+table{width:100%;border-collapse:collapse;font-size:.88rem;margin:1rem 0 1.5rem;}
+th{background:var(--bg3);color:var(--muted);font-weight:600;text-align:left;padding:8px 12px;border:1px solid var(--border);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;}
+td{padding:9px 12px;border:1px solid var(--border);color:#c9d1d9;vertical-align:top;}
+tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.steps{counter-reset:step;}
+.step{display:flex;gap:1.2rem;margin-bottom:1.5rem;}
+.step-num{flex-shrink:0;width:28px;height:28px;background:rgba(88,166,255,.15);border:1px solid rgba(88,166,255,.4);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--accent);margin-top:.15rem;}
+.step-body h4{margin:0 0 .3rem;font-size:.9rem;color:var(--text);text-transform:none;letter-spacing:0;}
+.step-body p{margin:0;font-size:.9rem;}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:1rem 0 1.5rem;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;}
+.stat-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;}
+.stat-value{font-size:1.5rem;font-weight:700;}
+.stat-value.green{color:var(--green);}
+.stat-value.red{color:var(--red);}
+.stat-value.yellow{color:var(--yellow);}
+.stat-value.blue{color:var(--accent);}
+.changelog-entry{border-left:2px solid var(--border2);padding:.6rem 0 .6rem 1.2rem;margin-bottom:.8rem;}
+.changelog-version{font-weight:700;color:var(--text);font-size:.9rem;}
+.changelog-date{font-size:.78rem;color:var(--muted);margin-left:.5rem;}
+.changelog-entry ul{margin:.4rem 0 0 1rem;}
+.changelog-entry li{font-size:.87rem;margin-bottom:.15rem;}
+hr{border:none;border-top:1px solid var(--border);margin:2.5rem 0;}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <div class="toc-logo">
+    <div class="toc-logo-title">BIOS Compliance Checker</div>
+    <div class="toc-logo-sub">CSV-Modus · Dokumentation v1.11</div>
+  </div>
+
+  <div class="toc-group-label">Übersicht</div>
+  <a class="toc-item" href="#overview">Was ist das Tool?</a>
+  <a class="toc-item" href="#comparison">Vergleich: CSV vs. Graph</a>
+  <a class="toc-item" href="#requirements">Voraussetzungen</a>
+
+  <div class="toc-divider"></div>
+  <div class="toc-group-label">CSV-Exporte</div>
+  <a class="toc-item" href="#device-csv">Geräte-CSV exportieren</a>
+  <a class="toc-item sub" href="#device-csv-columns">Relevante Spalten</a>
+  <a class="toc-item" href="#secureboot-csv">Secure Boot CSV exportieren</a>
+
+  <div class="toc-divider"></div>
+  <div class="toc-group-label">Bedienung</div>
+  <a class="toc-item" href="#import">CSV-Import</a>
+  <a class="toc-item" href="#analysis">Analyse starten</a>
+  <a class="toc-item" href="#summary">Summary-Kacheln</a>
+  <a class="toc-item" href="#filters">Filter &amp; Sortierung</a>
+  <a class="toc-item" href="#new-columns">Neue Spalten (v1.9)</a>
+  <a class="toc-item" href="#unverifiable">Nicht prüfbare Geräte</a>
+  <a class="toc-item" href="#export">Export-Funktionen</a>
+  <a class="toc-item sub" href="#export-csv">CSV-Export</a>
+  <a class="toc-item sub" href="#export-html">HTML-Report</a>
+  <a class="toc-item sub" href="#export-pdf">PDF / Drucken</a>
+
+  <div class="toc-divider"></div>
+  <div class="toc-group-label">Referenz</div>
+  <a class="toc-item" href="#parsing">CSV-Parsing-Logik</a>
+  <a class="toc-item" href="#compliance-check">BIOS-Compliance-Prüfung</a>
+  <a class="toc-item sub" href="#version-matching">Versionsvergleich</a>
+  <a class="toc-item sub" href="#model-matching">Modellabgleich</a>
+  <a class="toc-item sub" href="#bios-extraction">BIOS-Extraktion</a>
+  <a class="toc-item sub" href="#lenovo-mt">Lenovo Machine Type</a>
+  <a class="toc-item" href="#bios-db">BIOS-Datenbank</a>
+  <a class="toc-item" href="#status-codes">Status-Codes</a>
+  <a class="toc-item" href="#troubleshooting">Fehlerbehebung</a>
+
+  <div class="toc-divider"></div>
+  <a class="toc-item" href="#changelog">Changelog</a>
+</nav>
+
+<main class="content">
+
+  <h1>BIOS Compliance Checker <span class="version-pill">CSV-Modus v1.11</span></h1>
+
+  <div class="intro">
+    <p>Eine login-freie, vollständig CSV-basierte Variante des Intune BIOS Compliance Checkers. Statt Daten live via Microsoft Graph API abzurufen, werden zwei CSV-Exporte aus dem Intune Admin Center importiert. Kein Azure AD, kein App-Registration, kein Token — der Browser verarbeitet alles lokal.</p>
+  </div>
+
+  <h2 id="overview">Was ist das Tool?</h2>
+  <p>Das Tool prüft Windows-Geräte aus Intune auf BIOS-Compliance bezüglich des <strong>Windows Secure Boot 2023 Zertifikats-Updates</strong> (Ablauf Juni 2026). Es vergleicht die installierte BIOS-Version mit den von Dell, HP und Lenovo veröffentlichten Mindestversionen.</p>
+  <p>Im Gegensatz zur Graph-basierten Variante benötigt dieses Tool <strong>keine Anmeldung und keine Azure AD App-Registrierung</strong>. Die Gerätedaten werden stattdessen aus einem CSV-Export aus dem Intune Admin Center geladen.</p>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="stat-label">Unterstützte Hersteller</div><div class="stat-value blue">3</div></div>
+    <div class="stat-card"><div class="stat-label">Dell-Modelle in DB</div><div class="stat-value blue">~320</div></div>
+    <div class="stat-card"><div class="stat-label">HP-Modelle in DB</div><div class="stat-value blue">~300</div></div>
+    <div class="stat-card"><div class="stat-label">Lenovo-Einträge in DB</div><div class="stat-value green">~650</div></div>
+  </div>
+
+  <div class="callout info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body"><p>Alle Daten werden ausschliesslich lokal im Browser verarbeitet. Es findet keine Datenübertragung statt. Das Tool funktioniert komplett offline — sobald die HTML-Datei geladen ist, wird keine Internetverbindung mehr benötigt (ausser für die Google Fonts im Design).</p></div>
+  </div>
+
+  <h2 id="comparison">Vergleich: CSV-Modus vs. Graph-Modus</h2>
+  <table>
+    <tr><th>Merkmal</th><th>CSV-Modus</th><th>Graph-Modus</th></tr>
+    <tr><td>Login erforderlich</td><td><span class="badge badge-green">Nein</span></td><td><span class="badge badge-yellow">Ja (Azure AD)</span></td></tr>
+    <tr><td>App-Registrierung</td><td><span class="badge badge-green">Nicht nötig</span></td><td><span class="badge badge-yellow">Erforderlich</span></td></tr>
+    <tr><td>Datenabruf</td><td>CSV-Import (manuell)</td><td>Live via Graph API</td></tr>
+    <tr><td>Aktualität der Daten</td><td>Stand des CSV-Exports</td><td>Echtzeit</td></tr>
+    <tr><td>Ladezeit</td><td><span class="badge badge-green">Sofort</span></td><td>1–3 Min. (API-Requests)</td></tr>
+    <tr><td>Einsatz ohne IT-Berechtigungen</td><td><span class="badge badge-green">Möglich</span></td><td>Eingeschränkt</td></tr>
+    <tr><td>Automatisierbar</td><td>Nur manuell</td><td>Ja (API)</td></tr>
+    <tr><td>BIOS-Compliance-Prüfung</td><td><span class="badge badge-green">Identisch</span></td><td><span class="badge badge-green">Identisch</span></td></tr>
+    <tr><td>Secure Boot CSV-Import</td><td><span class="badge badge-green">Ja</span></td><td><span class="badge badge-green">Ja</span></td></tr>
+  </table>
+
+  <h2 id="requirements">Voraussetzungen</h2>
+  <ul>
+    <li>Moderner Browser (Chrome, Edge, Firefox, Safari)</li>
+    <li>Lesezugriff auf das Intune Admin Center (für den CSV-Export)</li>
+    <li>Keine App-Registrierung, kein Admin Consent, kein Token erforderlich</li>
+  </ul>
+
+  <h2 id="device-csv">Geräte-CSV exportieren</h2>
+  <p>Der CSV-Export erfolgt im Intune Admin Center:</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Intune Admin Center öffnen</h4>
+        <p>Navigiere zu <a href="https://intune.microsoft.com">intune.microsoft.com</a> → <strong>Geräte</strong> → <strong>Alle Geräte</strong>.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Export starten</h4>
+        <p>Klick auf <strong>Exportieren</strong> (oben rechts in der Geräteliste). Intune erstellt einen vollständigen Export aller Geräte inkl. Hardwareinventardaten.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>CSV herunterladen</h4>
+        <p>Der Export wird als ZIP-Datei bereitgestellt. Die enthaltene CSV-Datei direkt ins Tool laden.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout warning">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body"><strong>Hardwareinventar muss aktiviert sein</strong><p>Die Spalte <code>SystemManagementBIOSVersion</code> ist nur befüllt, wenn das Hardwareinventar für die Geräte in Intune aktiviert ist und die Geräte die Daten bereits gemeldet haben. Geräte ohne BIOS-Wert werden als <span class="badge badge-gray">nicht geprüft</span> angezeigt.</p></div>
+  </div>
+
+  <h3 id="device-csv-columns">Relevante Spalten</h3>
+  <p>Das Tool liest folgende Spalten aus der Geräte-CSV:</p>
+  <table>
+    <tr><th>Spalte</th><th>Verwendung</th><th>Pflicht</th></tr>
+    <tr><td><code>Device name</code></td><td>Gerätename (Join-Key für Secure Boot CSV)</td><td><span class="badge badge-red">Ja</span></td></tr>
+    <tr><td><code>Manufacturer</code></td><td>Hersteller für BIOS-DB-Lookup</td><td><span class="badge badge-red">Ja</span></td></tr>
+    <tr><td><code>Model</code></td><td>Modellname für BIOS-DB-Lookup</td><td><span class="badge badge-red">Ja</span></td></tr>
+    <tr><td><code>OS</code></td><td>Filter: nur Windows-Geräte</td><td><span class="badge badge-yellow">Empfohlen</span></td></tr>
+    <tr><td><code>OS version</code></td><td>Anzeige in Tabelle und CSV-Export</td><td><span class="badge badge-gray">Nein</span></td></tr>
+    <tr><td><code>SystemManagementBIOSVersion</code></td><td>Installierte BIOS-Version</td><td><span class="badge badge-gray">Nein*</span></td></tr>
+    <tr><td><code>Managed by</code></td><td>Filter: MDE-Geräte (<code>MDE</code>) werden ausgeschlossen</td><td><span class="badge badge-gray">Nein</span></td></tr>
+  </table>
+  <p style="font-size:12px;color:var(--muted);">* Ohne BIOS-Version ist keine Compliance-Prüfung möglich — Geräte werden als <em>nicht geprüft</em> angezeigt.</p>
+
+  <h2 id="secureboot-csv">Secure Boot CSV exportieren</h2>
+  <p>Optional kann ein zweiter CSV-Export aus dem Intune Reporting importiert werden. Er enthält Secure Boot Status, Zertifikat-Status sowie — ab dem aktualisierten Report vom Mai 2026 — Confidence Level, Secure Boot Trust-Konfiguration und das Datum der letzten Meldung.</p>
+  <p><strong>Intune Admin Center</strong> → <strong>Reports</strong> → <strong>Windows Autopatch</strong> → <strong>Windows quality updates</strong> → <strong>Reports</strong> → <strong>Secure Boot status</strong> → <strong>Exportieren</strong></p>
+  <p>Das Tool verknüpft die Daten automatisch über den Gerätenamen (case-insensitive). Die Spalten bleiben leer (<code>—</code>), solange kein CSV importiert wurde.</p>
+  <div class="callout warning">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body"><strong>Spalten im Report-Export</strong><p>Der aktuelle Intune-Export des Secure Boot Status Reports enthält nur die Basisspalten (<code>Device name</code>, <code>Secure Boot enabled</code>, <code>Firmware version</code>). Die neuen Spalten (<code>Certificate status</code>, <code>Confidence level</code>, <code>Secure Boot trust configuration</code>, <code>Date last reported</code>) sind zwar im Report-UI sichtbar, werden beim Exportieren aber noch nicht mitgeliefert. Das Tool ist vorbereitet und zeigt die Daten sobald Microsoft den Export aktualisiert.</p></div>
+  </div>
+
+  <h2 id="import">CSV-Import</h2>
+  <p>Das Tool bietet zwei Drop-Zonen nebeneinander:</p>
+  <ul>
+    <li><strong>Geräte-CSV</strong> (Pflicht) — per Drag &amp; Drop oder Klick</li>
+    <li><strong>Secure Boot Status CSV</strong> (optional) — per Drag &amp; Drop oder Klick</li>
+  </ul>
+  <p>Beide CSVs können in beliebiger Reihenfolge importiert werden. Wird die Secure Boot CSV nach dem Starten der Analyse nachgeladen, aktualisiert sich die Tabelle automatisch.</p>
+
+  <div class="callout info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body"><strong>Automatische Filterung beim Import</strong><p>Folgende Geräte werden beim Parsen automatisch ausgeschlossen und erscheinen nicht in der Ergebnistabelle:</p>
+    <ul style="margin:.4rem 0 0 1.2rem;">
+      <li><strong>Nicht-Windows-Geräte</strong> — Spalte <code>OS</code> enthält nicht <code>Windows</code></li>
+      <li><strong>MDE-only Geräte</strong> — Spalte <code>Managed by</code> = <code>MDE</code></li>
+      <li><strong>Persönliche Geräte</strong> — Spalte <code>Ownership</code> = <code>Personal</code></li>
+      <li><strong>Windows Home SKU</strong> — Spalte <code>SkuFamily</code> enthält <code>home</code></li>
+      <li><strong>VMware-VMs</strong> — Hersteller oder Modell enthält <code>vmware</code> (case-insensitive)</li>
+      <li><strong>Microsoft Hyper-V/Azure VMs</strong> — Hersteller = <code>Microsoft Corporation</code> UND Modell enthält <code>Virtual Machine</code> (Surface-Geräte bleiben erhalten)</li>
+    </ul></div>
+  </div>
+
+  <h2 id="analysis">Analyse starten</h2>
+  <p>Nach dem Import der Geräte-CSV wird die Schaltfläche <strong>Analyse starten</strong> aktiv. Ein Klick darauf:</p>
+  <ol>
+    <li>Befüllt die Dropdown-Filter mit den vorhandenen Herstellern und Modellen</li>
+    <li>Führt den BIOS-Compliance-Abgleich für alle Geräte durch</li>
+    <li>Zeigt die Ergebnistabelle und Summary-Kacheln an</li>
+    <li>Scrollt automatisch zu den Ergebnissen</li>
+  </ol>
+  <p>Mit <strong>Zurücksetzen</strong> werden alle importierten Daten gelöscht und das Tool in den Ausgangszustand versetzt.</p>
+
+  <h2 id="summary">Summary-Kacheln</h2>
+  <p>Oberhalb der Tabelle zeigt das Tool bis zu sechs Kacheln. Alle Kacheln (ausser Geräte gesamt) zeigen zusätzlich den prozentualen Anteil an der Gesamtzahl:</p>
+  <table>
+    <tr><th>Kachel</th><th>Inhalt</th><th>Sichtbar</th></tr>
+    <tr><td>Geräte gesamt</td><td>Anzahl geladener Windows-Geräte</td><td>Immer</td></tr>
+    <tr><td>BIOS aktuell</td><td>Anzahl + % Geräte mit BIOS-Version ≥ Mindestversion</td><td>Immer</td></tr>
+    <tr><td>Update erforderlich</td><td>Anzahl + % Geräte mit BIOS-Version &lt; Mindestversion</td><td>Immer</td></tr>
+    <tr><td>Nicht geprüft</td><td>Anzahl + % Geräte ohne DB-Eintrag oder ohne BIOS-Version</td><td>Immer</td></tr>
+    <tr><td><strong>UEFI Cert aktuell</strong></td><td>Anzahl + % (von Geräten mit bekanntem Cert-Status) mit <code>Certificate status = Up to date</code></td><td>Nur nach Secure Boot CSV-Import</td></tr>
+    <tr><td><strong>UEFI Cert Update erforderlich</strong></td><td>Anzahl + % Geräte mit <code>Certificate status = Not up to date</code></td><td>Nur nach Secure Boot CSV-Import</td></tr>
+  </table>
+
+  <h2 id="filters">Filter &amp; Sortierung</h2>
+  <table>
+    <tr><th>Filter</th><th>Beschreibung</th></tr>
+    <tr><td>Freitextsuche</td><td>Sucht in Gerätename, Modell, BIOS-Version und Betriebssystem</td></tr>
+    <tr><td>Hersteller</td><td>Dropdown mit allen vorhandenen Hersteller-Werten</td></tr>
+    <tr><td>Modell</td><td>Dropdown mit allen vorhandenen Modell-Werten</td></tr>
+    <tr><td>BIOS-Status</td><td>Aktuell / Update erforderlich / Nicht geprüft / End of Life / Manuell prüfen</td></tr>
+    <tr><td>Zertifikat-Status</td><td>Up to date / Not up to date / Not applicable / Unbekannt</td></tr>
+    <tr><td><strong>Confidence Level</strong></td><td>High Confidence / Under Observation / No Data Observed / Temporarily Paused / Not Supported (nur nach Secure Boot CSV-Import befüllbar)</td></tr>
+  </table>
+  <p>Alle Spalten sind durch Klick auf den Spaltentitel sortierbar. Versionsfelder werden numerisch-semantisch sortiert. Die Standardsortierung zeigt Geräte mit <span class="badge badge-red">Update erforderlich</span> zuerst.</p>
+
+  <h2 id="new-columns">Neue Spalten (ab v1.9)</h2>
+  <p>Das Tool zeigt drei neue Spalten aus der Secure Boot CSV, sofern die entsprechenden Daten im Export vorhanden sind:</p>
+  <table>
+    <tr><th>Spalte</th><th>Quelle</th><th>Beschreibung</th></tr>
+    <tr>
+      <td><strong>Confidence Level</strong></td>
+      <td><code>Confidence level</code></td>
+      <td>Einschätzung von Microsoft, ob das Secure Boot Update automatisch oder manuell ausgerollt werden soll. Mögliche Werte: <span class="badge badge-green">High Confidence</span> <span class="badge badge-yellow">Under Observation</span> <span class="badge badge-yellow">No Data Observed</span> <span class="badge badge-red">Temporarily Paused</span> <span class="badge badge-red">Not Supported</span></td>
+    </tr>
+    <tr>
+      <td><strong>Secure Boot Trust</strong></td>
+      <td><code>Secure Boot trust configuration</code></td>
+      <td>Gibt an wie Secure Boot Trust auf dem Gerät konfiguriert ist: nur Microsoft-Zertifikate, oder Microsoft + Drittanbieter-Zertifikate. Beeinflusst welche Zertifikate auf das Gerät anwendbar sind.</td>
+    </tr>
+    <tr>
+      <td><strong>Zuletzt gemeldet</strong></td>
+      <td><code>Date last reported</code></td>
+      <td>Datum der letzten Datenmeldung des Geräts an den Secure Boot Status Report.</td>
+    </tr>
+  </table>
+
+  <h2 id="unverifiable">Nicht prüfbare Geräte</h2>
+  <p>Für Geräte, bei denen keine automatische BIOS-Compliance-Prüfung möglich ist, zeigt das Tool in den Spalten <strong>BIOS aktuell</strong> und <strong>BIOS Minimum</strong> jeweils <code>—</code> und in der Statusspalte einen <span class="badge badge-yellow">Manuell prüfen</span>-Badge. Drei Fälle werden unterschieden:</p>
+  <table>
+    <tr><th>Geräteklasse</th><th>Erkennung</th><th>Badge</th><th>Massnahme</th></tr>
+    <tr>
+      <td><strong>IdeaPad / Legion / Yoga / WinBook</strong></td>
+      <td>Machine Type Prefix <code>82xx</code> oder <code>83xx</code>, nicht in <code>LENOVO_MT</code></td>
+      <td><span class="badge badge-yellow">Manuell prüfen ↗</span> (anklickbar)</td>
+      <td>Badge öffnet <a href="https://support.lenovo.com/us/en/solutions/ht518129#ideapadandothers">HT518129 (IdeaPad-Sektion)</a> direkt im Browser</td>
+    </tr>
+    <tr>
+      <td><strong>ThinkStation / ThinkCentre / IdeaCentre</strong></td>
+      <td>Machine Type Prefix <code>30xx</code>, <code>10–13xx</code>, <code>90/91xx</code>, <code>F0xx</code></td>
+      <td><span class="badge badge-yellow">Manuell prüfen ⓘ</span></td>
+      <td>Hover-Tooltip erklärt: Desktop-Gerät, Intune liefert keine BIOS-Versionsinformation</td>
+    </tr>
+    <tr>
+      <td><strong>Sonstige (alle Hersteller)</strong></td>
+      <td>Modell nicht in DB, keine BIOS-Version, unbekannter Hersteller</td>
+      <td><span class="badge badge-yellow">Manuell prüfen ⓘ</span></td>
+      <td>Hover-Tooltip: Modell nicht in der Datenbank oder BIOS-Version nicht verfügbar</td>
+    </tr>
+  </table>
+  <div class="callout info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body"><p><strong>ThinkBook</strong>-Geräte (<code>21xx</code>- und einige <code>83xx</code>-Codes) sind explizit in <code>LENOVO_MT</code> eingetragen und werden wie ThinkPad-Geräte behandelt — sofern der Intune-Export die Version in Klammern enthält (z.B. <code>MNCN37WW (1.37)</code>). Fehlt die Klammerschreibweise, gilt der generische Manuell-prüfen-Pfad.</p></div>
+  </div>
+
+  <h2 id="export">Export-Funktionen</h2>
+  <p>Ab v1.10 ersetzt ein <strong>Export ▾</strong>-Dropdown die bisherige einzelne CSV-Schaltfläche. Es stehen drei Export-Optionen zur Verfügung:</p>
+
+  <h3 id="export-csv">📄 CSV-Export</h3>
+  <p>Exportiert die aktuell gefilterte Ansicht als CSV-Datei (UTF-8 mit BOM, öffnet sich in Excel korrekt):</p>
+  <table>
+    <tr><th>Spalte</th><th>Inhalt</th></tr>
+    <tr><td>Gerätename</td><td>Aus der importierten Geräte-CSV</td></tr>
+    <tr><td>Hersteller</td><td>Aus der importierten Geräte-CSV</td></tr>
+    <tr><td>Modell</td><td>Aus der importierten Geräte-CSV</td></tr>
+    <tr><td>BIOS aktuell</td><td>Extrahierte numerische BIOS-Version</td></tr>
+    <tr><td>BIOS aktuell (raw)</td><td>Rohwert aus der Geräte-CSV (z.B. <code>V70 Ver. 01.10.00</code>)</td></tr>
+    <tr><td>BIOS Minimum</td><td>Mindestversion laut Hersteller-Datenbank</td></tr>
+    <tr><td>DB-Modell (abgeglichen)</td><td>Tatsächlich verwendeter DB-Eintrag für den Match</td></tr>
+    <tr><td>BIOS Status</td><td>Aktuell / Update erforderlich / Nicht geprüft</td></tr>
+    <tr><td>Secure Boot aktiviert</td><td>Wert aus Secure Boot CSV (leer wenn nicht importiert)</td></tr>
+    <tr><td>Zertifikat Status</td><td>Wert aus Secure Boot CSV (leer wenn nicht importiert)</td></tr>
+    <tr><td>Confidence Level</td><td>Rohwert aus Secure Boot CSV (leer wenn nicht importiert)</td></tr>
+    <tr><td>Secure Boot Trust</td><td>Rohwert aus Secure Boot CSV (leer wenn nicht importiert)</td></tr>
+    <tr><td>Zuletzt gemeldet</td><td>Datum aus Secure Boot CSV (leer wenn nicht importiert)</td></tr>
+    <tr><td>Betriebssystem</td><td>Aus der importierten Geräte-CSV</td></tr>
+    <tr><td>OS-Version</td><td>Aus der importierten Geräte-CSV</td></tr>
+  </table>
+
+  <h3 id="export-html">🌐 HTML-Report</h3>
+  <p>Generiert einen <strong>vollständig eigenständigen HTML-Report</strong> als Download-Datei (<code>intune_bios_compliance_report.html</code>). Der Report ist ohne das Haupttool nutzbar und enthält:</p>
+  <ul>
+    <li>Summary-Kacheln als Snapshot zum Zeitpunkt des Exports</li>
+    <li>Vollständige Gerätetabelle der aktuell gefilterten Ansicht mit farbcodierten Badges</li>
+    <li>Interaktive Sortierung durch Klick auf Spaltenköpfe</li>
+    <li>Alle Secure Boot-, Zertifikat-, Confidence-Level- und Trust-Spalten — sofern die Secure Boot CSV importiert war</li>
+    <li>Erzeugungsdatum und Geräteanzahl in der Kopfzeile</li>
+  </ul>
+  <div class="callout info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body"><p>Der HTML-Report passt sich dynamisch an: Sind keine Secure Boot-Daten importiert, werden die entsprechenden Spalten weggelassen. Der Report ist damit immer sauber ohne leere Spalten.</p></div>
+  </div>
+
+  <h3 id="export-pdf">🖨 PDF / Drucken</h3>
+  <p>Öffnet den Browser-Druckdialog mit einer optimierten <code>@media print</code>-Darstellung:</p>
+  <ul>
+    <li>Import-Bereich und Footer werden ausgeblendet</li>
+    <li>Summary-Kacheln werden in einer Zeile dargestellt</li>
+    <li>Tabelle verwendet kompakten 10px-Font mit Zellrahmen für optimale Lesbarkeit im Druck</li>
+    <li>Ein Druckkopf mit Titel und Zeitstempel erscheint oben auf der Seite</li>
+    <li><strong>PDF speichern</strong> über den integrierten PDF-Drucker des Browsers möglich</li>
+  </ul>
+
+  <h2 id="parsing">CSV-Parsing-Logik</h2>
+
+  <h3>Geräte-CSV</h3>
+  <p>Das Tool verwendet einen vollständigen RFC 4180-kompatiblen CSV-Parser, der mit Anführungszeichen, eingebetteten Kommas und Zeilenumbrüchen in Feldern umgehen kann. Beim Parsen werden automatisch gefiltert:</p>
+  <ul>
+    <li><strong>Nicht-Windows-Geräte</strong> — Spalte <code>OS</code> muss <code>Windows</code> enthalten (case-insensitive)</li>
+    <li><strong>MDE-only Geräte</strong> — Spalte <code>Managed by</code> = <code>MDE</code> werden ausgeschlossen</li>
+  </ul>
+  <p>Die Spalte <code>SystemManagementBIOSVersion</code> wird über eine Suche nach dem Schlüsselwort <code>bios</code> im Header erkannt — unabhängig von der genauen Gross-/Kleinschreibung.</p>
+
+  <h3>Secure Boot CSV</h3>
+  <p>Die Secure Boot CSV wird ebenfalls RFC 4180-konform geparst. Die Verknüpfung mit den Gerätedaten erfolgt über den Gerätenamen (Spalte <code>Device name</code>) als Join-Key, case-insensitiv. Pflichtfelder:</p>
+  <ul>
+    <li><code>Device name</code> — Join-Key (Pflicht)</li>
+    <li><code>Secure Boot enabled</code> — Yes / No / Unknown (Pflicht)</li>
+  </ul>
+  <p>Optionale Spalten — werden automatisch erkannt wenn vorhanden, fehlendes Feld zeigt <code>—</code>:</p>
+  <ul>
+    <li><code>Certificate status</code> — Up to date / Not up to date / Not applicable</li>
+    <li><code>Confidence level</code> — Freitext, wird intern auf High / Under Observation / No Data / Paused / Not Supported normalisiert</li>
+    <li><code>Secure Boot trust configuration</code> — Freitext</li>
+    <li><code>Date last reported</code> — Datum als Text</li>
+  </ul>
+
+  <h2 id="compliance-check">BIOS-Compliance-Prüfung</h2>
+
+  <h3 id="version-matching">Versionsvergleich</h3>
+  <p>Die aktuelle BIOS-Version wird segmentweise numerisch mit der Mindestversion verglichen — nicht alphabetisch:</p>
+  <pre><code>compareVersions("01.10.00", "01.09.00")  →  1  (aktuell >= minimum ✓)
+compareVersions("1.8.0",    "1.10.0")    → -1  (veraltet ✗)
+compareVersions("1.10.0",   "1.10.0")   →  0  (exakt gleich ✓)</code></pre>
+
+  <h3 id="model-matching">Modellabgleich (Normalisierung + Fuzzy)</h3>
+  <p>Intune liefert Modellnamen oft in ausführlicher Form. Der Abgleich läuft in drei Stufen:</p>
+  <table>
+    <tr><th>Stufe</th><th>Methode</th><th>Beispiel</th></tr>
+    <tr>
+      <td><span class="badge badge-blue">1</span> Normalisierung</td>
+      <td>Störwörter entfernen (<code>Notebook PC</code>, <code>Inch</code>, <code>Laptop PC</code>, …)</td>
+      <td><code>HP EliteBook 860 16 inch G10 Notebook PC</code> → <code>hp elitebook 860 16 g10</code></td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-blue">2</span> Substring</td>
+      <td>Normalisierter DB-Schlüssel ist in Intune-Namen enthalten (oder umgekehrt)</td>
+      <td><code>hp elitebook 840 g8</code> ⊂ <code>hp elitebook 840 g8 sonderconfig</code></td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-blue">3</span> Fuzzy (Jaccard)</td>
+      <td>Wortmengen-Ähnlichkeit ≥ 60 %</td>
+      <td><code>hp elitebook 840-g8</code> ↔ <code>hp elitebook 840 g8</code></td>
+    </tr>
+  </table>
+  <p>Ein Tooltip auf der Mindestversions-Zelle zeigt an, welcher DB-Eintrag für den Match verwendet wurde (z.B. <code>t14 gen 1 (MT:20S1)</code>).</p>
+
+  <h3 id="lenovo-mt">Lenovo Machine Type Erkennung</h3>
+  <p>Intune liefert für Lenovo-Geräte den <strong>Machine Type Code</strong> (z.B. <code>20S1SFT70Y</code> oder <code>83LKS0B100</code>), nicht den Produktnamen. Die normale Fuzzy-Suche würde in der DB nichts finden. Das Tool verwendet deshalb eine separate Nachschlagetabelle (<code>LENOVO_MT</code>) mit 463 Einträgen aus <a href="https://support.lenovo.com/us/en/solutions/ht518129">HT518129</a>:</p>
+  <table>
+    <tr><th>Schritt</th><th>Aktion</th><th>Beispiel</th></tr>
+    <tr><td>1. Fuzzy-Match</td><td>Normaler DB-Abgleich (wie bei Dell/HP)</td><td>Schlägt bei Machine Type Codes fehl</td></tr>
+    <tr><td>2. BIOS-Family-Disambig.</td><td>Composite Key <code>MT_BIOSPREFIX</code> in <code>LENOVO_MT_BIOS</code></td><td><code>20VX_N3WET</code> → min 1.13 statt 1.61</td></tr>
+    <tr><td>3. Machine Type Lookup</td><td>Erste 4 Zeichen des Modellcodes in <code>LENOVO_MT</code></td><td><code>20S1</code> → <code>t14 gen 1</code> → min 1.31</td></tr>
+    <tr><td>4. Desktop-Erkennung</td><td>Prefix <code>10–13xx</code>, <code>30xx</code>, <code>90/91xx</code>, <code>F0xx</code></td><td><code>30CE</code> → ThinkStation → Manuell prüfen ⓘ</td></tr>
+    <tr><td>5. Consumer-Erkennung</td><td>Prefix <code>82xx</code> oder <code>83xx</code> ohne MT-Eintrag</td><td><code>83LK</code> → IdeaPad → Manuell prüfen ↗</td></tr>
+  </table>
+  <div class="callout info">
+    <span class="callout-icon">ℹ️</span>
+    <div class="callout-body"><strong>BIOS-Family Disambiguation (P14s/P15s Gen 2)</strong><p>Einige Lenovo-Modelle kommen mit zwei verschiedenen BIOS-Familien mit unterschiedlichen Mindestversionen. Das Tool erkennt die BIOS-Family anhand der ersten 5 Zeichen des Rohwerts und wählt die korrekte Mindestversion: <code>20VX</code> mit <code>N34ET</code>-BIOS → min 1.61, mit <code>N3WET</code>-BIOS → min 1.13.</p></div>
+  </div>
+
+  <h3 id="bios-extraction">BIOS-Versionsextraktion</h3>
+  <p>Das Tool erkennt drei BIOS-Versionsformate:</p>
+  <pre><code>// HP: Family-Prefix + "ver." + Version
+"V70 ver. 01.10.00"       →  "01.10.00"
+"T76 Ver. 01.22.00"       →  "01.22.00"
+
+// Lenovo ThinkPad/ThinkBook (kommerziell): Version in Klammern
+"N2XET42W (1.32 )"        →  "1.32"
+"R1EET56W(1.56 )"         →  "1.56"
+"F8CN59WW(V2.22)"         →  "2.22"
+"MNCN37WW (1.37)"         →  "1.37"   (ThinkBook)
+
+// Lenovo IdeaPad/Legion/Yoga (Consumer): kein Versionsformat
+"GLCN46WW"                →  nicht extrahierbar → Manuell prüfen
+"Q8CN17WW"                →  nicht extrahierbar → Manuell prüfen
+
+// Dell / generisch: bereits numerisch
+"01.10.00"                →  "01.10.00"  (unverändert)
+"1.32.1"                  →  "1.32.1"    (unverändert)</code></pre>
+  <p>Der ursprüngliche Rohwert wird im CSV-Export als separate Spalte ausgegeben und als Tooltip auf der BIOS-Zelle angezeigt — sofern das Gerät verifizierbar ist.</p>
+
+  <h2 id="bios-db">BIOS-Datenbank</h2>
+  <p>Identisch mit der Graph-basierten Variante — die Datenbank ist direkt im HTML-File hinterlegt:</p>
+  <table>
+    <tr><th>Hersteller</th><th>Quelle</th><th>Stand</th></tr>
+    <tr><td>Dell</td><td><a href="https://www.dell.com/support/kbdoc/en-us/000347876">KB000347876</a></td><td>Februar 2026</td></tr>
+    <tr><td>HP</td><td><a href="https://support.hp.com/us-en/document/ish_13070353-13070429-16">HP Support</a></td><td>2025/2026</td></tr>
+    <tr><td>Lenovo</td><td><a href="https://support.lenovo.com/us/en/solutions/ht518129">HT518129</a></td><td>Juni 2026</td></tr>
+  </table>
+  <div class="callout warning">
+    <span class="callout-icon">⚠️</span>
+    <div class="callout-body"><strong>Datenbank-Updates</strong><p>Die Hersteller aktualisieren ihre Listen laufend. Die Datenbank im Tool spiegelt den Stand zum Erstellungszeitpunkt wider. Für kritische Compliance-Entscheidungen sollten die Quellartikel direkt konsultiert werden.</p></div>
+  </div>
+
+  <h2 id="status-codes">Status-Codes</h2>
+
+  <h3>BIOS-Status</h3>
+  <table>
+    <tr><th>Status</th><th>Bedeutung</th></tr>
+    <tr>
+      <td><span class="badge badge-green">Aktuell</span></td>
+      <td>Installierte BIOS-Version ≥ Mindestversion. Das Gerät erfüllt die Voraussetzung für das Secure Boot 2023 Zertifikats-Update.</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-red">Update erforderlich</span></td>
+      <td>Installierte BIOS-Version &lt; Mindestversion. Ein BIOS-Update ist notwendig.</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-yellow">End of Life</span></td>
+      <td>Kein BIOS-Update verfügbar — das Gerät kann die Compliance-Anforderung nicht mehr erfüllen.</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-yellow">Manuell prüfen ↗</span></td>
+      <td><strong>IdeaPad / Legion / Yoga (Consumer, 82xx/83xx):</strong> Gerät ist in HT518129 gelistet, aber die BIOS-Versionsnummer ist im Intune-Export nicht als numerischer Wert verfügbar. Badge ist anklickbar und öffnet den Lenovo HT518129 Guide. BIOS aktuell und BIOS Minimum zeigen <code>—</code>.</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-yellow">Manuell prüfen ⓘ</span></td>
+      <td><strong>Desktop-Geräte (ThinkStation/ThinkCentre/IdeaCentre):</strong> Intune liefert keine BIOS-Versionsinformation für Desktop-Workstations. Eine automatische Prüfung ist nicht möglich. Tooltip erklärt den Grund. BIOS aktuell und BIOS Minimum zeigen <code>—</code>.<br><strong>Generisch:</strong> Modell nicht in der Datenbank oder keine BIOS-Version vorhanden.</td>
+    </tr>
+  </table>
+
+  <h3>Secure Boot Status (aus Secure Boot CSV)</h3>
+  <table>
+    <tr><th>Status</th><th>Bedeutung</th></tr>
+    <tr><td><span class="badge badge-green">Ja</span></td><td>Secure Boot ist aktiviert.</td></tr>
+    <tr><td><span class="badge badge-red">Nein</span></td><td>Secure Boot ist deaktiviert.</td></tr>
+    <tr><td><span class="badge badge-gray">Unbekannt / —</span></td><td>Keine Daten vorhanden oder Secure Boot CSV nicht importiert.</td></tr>
+  </table>
+
+  <h3>Zertifikat-Status (aus Secure Boot CSV)</h3>
+  <table>
+    <tr><th>Status</th><th>Bedeutung</th></tr>
+    <tr><td><span class="badge badge-green">Aktuell</span></td><td>Secure Boot 2023 Zertifikate sind installiert. Kein Handlungsbedarf.</td></tr>
+    <tr><td><span class="badge badge-red">Veraltet</span></td><td>Noch 2011 Zertifikate aktiv. BIOS-Update + Windows Update erforderlich.</td></tr>
+    <tr><td><span class="badge badge-gray">N/A / —</span></td><td>Nicht anwendbar oder Secure Boot CSV nicht importiert.</td></tr>
+  </table>
+
+  <h3>Confidence Level (aus Secure Boot CSV)</h3>
+  <table>
+    <tr><th>Badge</th><th>Bedeutung</th></tr>
+    <tr><td><span class="badge badge-green">High Confidence</span></td><td>Microsoft empfiehlt automatischen Rollout. Gerät wurde erfolgreich auf neues Zertifikat aktualisiert oder ist bereit dafür.</td></tr>
+    <tr><td><span class="badge badge-yellow">Under Observation</span></td><td>Microsoft beobachtet das Gerät noch. Rollout läuft unter Kontrolle.</td></tr>
+    <tr><td><span class="badge badge-yellow">No Data Observed</span></td><td>Noch keine Daten vorhanden. Manueller Rollout empfohlen.</td></tr>
+    <tr><td><span class="badge badge-red">Temporarily Paused</span></td><td>Rollout pausiert, mögliche Kompatibilitätsprobleme erkannt.</td></tr>
+    <tr><td><span class="badge badge-red">Not Supported</span></td><td>Gerät unterstützt das Update nicht oder hat bekannte Einschränkungen.</td></tr>
+    <tr><td><span class="badge badge-gray">—</span></td><td>Secure Boot CSV nicht importiert oder Spalte im Export nicht enthalten.</td></tr>
+  </table>
+
+  <h2 id="troubleshooting">Fehlerbehebung</h2>
+  <table>
+    <tr><th>Problem</th><th>Ursache</th><th>Lösung</th></tr>
+    <tr>
+      <td>Schaltfläche „Analyse starten" bleibt inaktiv</td>
+      <td>Geräte-CSV noch nicht importiert</td>
+      <td>Zuerst die Geräte-CSV laden — die Secure Boot CSV ist optional</td>
+    </tr>
+    <tr>
+      <td>Fehler: „Erforderliche Spalten nicht gefunden"</td>
+      <td>Falsche CSV-Datei importiert</td>
+      <td>Sicherstellen dass die Geräte-CSV aus dem Bereich <em>Geräte → Alle Geräte → Exportieren</em> stammt</td>
+    </tr>
+    <tr>
+      <td>0 Geräte nach Import</td>
+      <td>Alle Geräte wurden herausgefiltert</td>
+      <td>CSV enthält evtl. nur nicht-Windows oder MDE-Geräte — Spalten <code>OS</code> und <code>Managed by</code> prüfen</td>
+    </tr>
+    <tr>
+      <td>BIOS-Version überall leer</td>
+      <td>Hardwareinventar in Intune nicht synchronisiert</td>
+      <td>Geräte in Intune synchronisieren, neuen CSV-Export erstellen</td>
+    </tr>
+    <tr>
+      <td>Status zeigt überall <span class="badge badge-gray">—</span></td>
+      <td>Modellname wird nicht erkannt</td>
+      <td>CSV-Export prüfen, Spalte <em>DB-Modell (abgeglichen)</em> analysieren; ggf. Eintrag in <code>BIOS_DB</code> ergänzen</td>
+    </tr>
+    <tr>
+      <td>Secure Boot Spalten zeigen <code>—</code></td>
+      <td>Secure Boot CSV nicht importiert oder Gerätename stimmt nicht überein</td>
+      <td>Secure Boot CSV importieren; Gerätenamen in beiden CSVs vergleichen</td>
+    </tr>
+    <tr>
+      <td>CSV-Import-Fehler bei Secure Boot CSV</td>
+      <td>Falsche CSV-Datei</td>
+      <td>Nur den Secure Boot Status CSV-Export aus <em>Reports → Windows Autopatch → Secure Boot status</em> verwenden</td>
+    </tr>
+    <tr>
+      <td>Confidence Level, Secure Boot Trust, Zuletzt gemeldet zeigen überall <code>—</code></td>
+      <td>Secure Boot CSV-Export enthält diese Spalten noch nicht</td>
+      <td>Microsoft liefert diese Spalten im Export aktuell noch nicht mit, obwohl sie im Report-UI sichtbar sind. Das Tool ist vorbereitet und zeigt die Daten sobald Microsoft den Export aktualisiert.</td>
+    </tr>
+    <tr>
+      <td>Lenovo-Geräte zeigen alle <span class="badge badge-yellow">Manuell prüfen</span></td>
+      <td>Machine Type Code nicht in <code>LENOVO_MT</code></td>
+      <td>Das Gerät ist entweder ein Consumer-Gerät (82xx/83xx), ein Desktop (30xx/10–13xx/90–91xx) oder ein neueres Modell, das noch nicht in der Tabelle ist. Für Consumer-Geräte ist der Badge anklickbar und öffnet HT518129 direkt.</td>
+    </tr>
+    <tr>
+      <td>VMware- oder Azure-VMs erscheinen in der Tabelle</td>
+      <td>Ältere CSV-Exporte ohne <code>Manufacturer</code>-Spalte oder unbekanntes VM-Format</td>
+      <td>Prüfe ob Hersteller-Spalte <code>VMware, Inc.</code> oder <code>Microsoft Corporation</code> enthält und Modell-Spalte <code>Virtual Machine</code> enthält. Diese werden automatisch gefiltert.</td>
+    </tr>
+  </table>
+
+  <h2 id="changelog">Changelog</h2>
+
+  <div class="changelog-entry">
+    <span class="changelog-version">v1.11</span><span class="changelog-date">Juni 2026</span>
+    <ul>
+      <li>Vollständige Lenovo Machine Type Tabelle (<code>LENOVO_MT</code>): 136 → 463 Einträge aus Lenovo HT518129 (ThinkPad, ThinkBook, alle Generationen)</li>
+      <li>BIOS-Family Disambiguation (<code>LENOVO_MT_BIOS</code>): P14s Gen 2 / P15s Gen 2 mit zwei verschiedenen BIOS-Familien und unterschiedlichen Mindestversionen werden korrekt unterschieden</li>
+      <li>Desktop-Erkennung: ThinkStation, ThinkCentre, IdeaCentre zeigen <span class="badge badge-yellow">Manuell prüfen ⓘ</span> mit erklärendem Tooltip</li>
+      <li>Consumer-Erkennung: IdeaPad / Legion / Yoga (82xx/83xx) zeigen anklickbares <span class="badge badge-yellow">Manuell prüfen ↗</span> das HT518129 öffnet</li>
+      <li>Für alle nicht prüfbaren Geräte zeigen BIOS aktuell und BIOS Minimum jetzt <code>—</code> statt rohem BIOS-Code</li>
+      <li>VM-Filter: VMware-VMs und Microsoft Hyper-V/Azure-VMs werden beim Import automatisch ausgeschlossen</li>
+      <li>17 neue BIOS-DB-Einträge (Disambiguierungs-Varianten, fehlende E-/L-/X-Series)</li>
+      <li>Lenovo BIOS-Extraktion: unterstützt jetzt Klammer-Format <code>N2XET42W (1.32 )</code> und <code>F8CN59WW(V2.22)</code></li>
+    </ul>
+  </div>
+  <div class="changelog-entry">
+    <span class="changelog-version">v1.10</span><span class="changelog-date">Mai 2026</span>
+    <ul>
+      <li>Export-Dropdown ersetzt die einzelne CSV-Schaltfläche</li>
+      <li>Neuer Export: <strong>HTML-Report</strong> — eigenständige, sortierbare HTML-Datei mit Kachel-Snapshot und vollständiger Gerätetabelle</li>
+      <li>Neuer Export: <strong>PDF / Drucken</strong> — Browser-Druckdialog mit optimierter <code>@media print</code>-Darstellung</li>
+      <li>HTML-Report passt sich dynamisch an verfügbare Secure Boot-Daten an</li>
+    </ul>
+  </div>
+  <div class="changelog-entry">
+    <span class="changelog-version">v1.9</span><span class="changelog-date">Mai 2026</span>
+    <ul>
+      <li>Drei neue Tabellenspalten aus der Secure Boot CSV: <strong>Confidence Level</strong>, <strong>Secure Boot Trust</strong>, <strong>Zuletzt gemeldet</strong></li>
+      <li>Neuer Filter: <strong>Confidence Level</strong></li>
+      <li>Prozentualer Anteil auf allen Summary-Kacheln</li>
+      <li>Neue Kachel: <strong>UEFI Cert Update erforderlich</strong> (erscheint nach Secure Boot CSV-Import)</li>
+      <li>Colour-coded Badges für Confidence Level (grün / gelb / rot)</li>
+      <li>Fix: Zertifikat-Status wurde als „Unbekannt" angezeigt wenn die Secure Boot CSV die Spalte <code>Certificate status</code> nicht enthält</li>
+      <li>Fix: <code>sortFiltered()</code> Absturz bei nicht-string Rückgabewerten aus <code>getVal()</code></li>
+      <li>Fix: Mehrere doppelte Funktionsdeklarationen bereinigt</li>
+    </ul>
+  </div>
+  <div class="changelog-entry">
+    <span class="changelog-version">v1.1</span><span class="changelog-date">April 2026</span>
+    <ul>
+      <li>MDE-Geräte werden anhand der Spalte <code>Managed by = MDE</code> beim Parsen herausgefiltert</li>
+      <li>Drop-Zonen layout überarbeitet: Beschreibungstexte und Kästen in separaten Zeilen für einheitliche Höhe</li>
+      <li>Diverse Syntaxfixes (Zeilenumbrüche in JS-String-Literalen)</li>
+    </ul>
+  </div>
+  <div class="changelog-entry">
+    <span class="changelog-version">v1.0</span><span class="changelog-date">April 2026</span>
+    <ul>
+      <li>Initiale Version: vollständig CSV-basiert, kein Login erforderlich</li>
+      <li>Geräte-CSV Import (Intune Alle Geräte Export)</li>
+      <li>Secure Boot CSV Import (optional, identisch mit Graph-Variante)</li>
+      <li>Komplette BIOS-Compliance-Engine (Datenbank, Normalisierung, Fuzzy-Match, HP-Extraktion)</li>
+      <li>Identische Tabelle, Filter, Sortierung, Summary-Kacheln und CSV-Export wie Graph-Variante</li>
+      <li>Automatische Filterung von Nicht-Windows-Geräten</li>
+    </ul>
+  </div>
+
+</main>
+</div>
+
+<script>
+const sections = document.querySelectorAll('h2[id], h3[id]');
+const tocItems  = document.querySelectorAll('.toc-item');
+const observer  = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      tocItems.forEach(t => t.classList.remove('active'));
+      const active = document.querySelector('.toc-item[href="#' + e.target.id + '"]');
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-10% 0px -80% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
